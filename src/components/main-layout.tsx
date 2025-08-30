@@ -8,6 +8,7 @@ import {
   Trophy,
   UserCircle,
   Menu,
+  Users,
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,13 +33,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+interface MainLayoutProps {
+  children: React.ReactNode;
+  userType?: "student" | "teacher";
+}
+
 export default function MainLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+  userType = "student",
+}: MainLayoutProps) {
   const pathname = usePathname();
   const isActive = (path: string) => pathname === path;
+  
+  const isStudent = userType === "student";
+  const user = isStudent ? { name: "Student User", home: "/student/dashboard", quizzes: "/student/dashboard" } : { name: "Teacher Admin", home: "/teacher/dashboard", quizzes: "/teacher/dashboard" };
+
 
   return (
     <SidebarProvider>
@@ -57,10 +66,10 @@ export default function MainLayout({
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  isActive={isActive("/")}
+                  isActive={isActive(user.home)}
                   tooltip="Dashboard"
                 >
-                  <Link href="/">
+                  <Link href={user.home}>
                     <LayoutDashboard />
                     <span>Dashboard</span>
                   </Link>
@@ -69,37 +78,39 @@ export default function MainLayout({
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname.startsWith("/quiz")}
+                  isActive={pathname.startsWith("/quiz") || pathname.startsWith("/teacher/quizzes")}
                   tooltip="Quizzes"
                 >
-                  <Link href="/">
+                  <Link href={user.quizzes}>
                     <FileText />
                     <span>Quizzes</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/leaderboard")}
-                  tooltip="Leaderboard"
-                >
-                  <Link href="/leaderboard">
-                    <Trophy />
-                    <span>Leaderboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {isStudent && (
+                 <SidebarMenuItem>
+                    <SidebarMenuButton
+                    asChild
+                    isActive={isActive("/leaderboard")}
+                    tooltip="Leaderboard"
+                    >
+                    <Link href="/leaderboard">
+                        <Trophy />
+                        <span>Leaderboard</span>
+                    </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://i.pravatar.cc/40?u=student" />
-                  <AvatarFallback>S</AvatarFallback>
+                  <AvatarImage src={`https://i.pravatar.cc/40?u=${userType}`} />
+                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <span className="font-medium text-sm">Student User</span>
+                <span className="font-medium text-sm">{user.name}</span>
               </div>
             </div>
           </SidebarFooter>
@@ -119,7 +130,9 @@ export default function MainLayout({
                 <DropdownMenuItem>Profile</DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Logout</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link href="/">Logout</Link>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </header>

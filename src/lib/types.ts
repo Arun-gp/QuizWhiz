@@ -1,10 +1,19 @@
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'student' | 'teacher';
+}
+
+export interface Option {
+  id: string;
+  text: string;
+}
+
 export interface Question {
   id: string;
   text: string;
-  options: {
-    id: string;
-    text: string;
-  }[];
+  options: Option[];
   correctAnswerId: string;
 }
 
@@ -14,6 +23,7 @@ export interface Quiz {
   description: string;
   duration: number; // in minutes
   questions: Question[];
+  authorId: string;
 }
 
 export interface LeaderboardEntry {
