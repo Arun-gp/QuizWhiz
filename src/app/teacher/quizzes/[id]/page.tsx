@@ -4,21 +4,27 @@
 import { useState } from 'react';
 import MainLayout from "@/components/main-layout";
 import { quizzes as initialQuizzes } from "@/lib/data";
-import { notFound, useRouter } from "next/navigation";
+import { notFound, useRouter, useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { X, PlusCircle } from "lucide-react";
+import { X, PlusCircle, Check } from "lucide-react";
 import type { Quiz, Question, Option } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
-export default function EditQuizPage({ params }: { params: { id: string } }) {
+
+export default function EditQuizPage() {
     const router = useRouter();
+    const params = useParams();
     const { toast } = useToast();
     const [quizzes, setQuizzes] = useState(initialQuizzes);
+
     const existingQuiz = quizzes.find((q) => q.id === params.id);
+    
     const [quiz, setQuiz] = useState<Quiz | undefined>(existingQuiz);
 
     if (!quiz) {
@@ -28,20 +34,16 @@ export default function EditQuizPage({ params }: { params: { id: string } }) {
     const handleAddQuestion = () => {
         if (!quiz) return;
         const newQuestionId = `q${quiz.questions.length + 1}-${Date.now()}`;
-        const newOptionId1 = `o1-${Date.now()}`;
-        const newOptionId2 = `o2-${Date.now()}`;
-        const newOptionId3 = `o3-${Date.now()}`;
-        const newOptionId4 = `o4-${Date.now()}`;
         const newQuestion: Question = {
             id: newQuestionId,
             text: '',
             options: [
-                { id: newOptionId1, text: '' },
-                { id: newOptionId2, text: '' },
-                { id: newOptionId3, text: '' },
-                { id: newOptionId4, text: '' },
+                { id: `o1-${Date.now()}`, text: '' },
+                { id: `o2-${Date.now()}`, text: '' },
+                { id: `o3-${Date.now()}`, text: '' },
+                { id: `o4-${Date.now()}`, text: '' },
             ],
-            correctAnswerId: newOptionId1,
+            correctAnswerId: '',
         };
         setQuiz({ ...quiz, questions: [...quiz.questions, newQuestion] });
     };
@@ -127,6 +129,7 @@ export default function EditQuizPage({ params }: { params: { id: string } }) {
                 <Card>
                     <CardHeader>
                         <CardTitle>Questions</CardTitle>
+                        <CardDescription>Click on an option's radio button to mark it as correct.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {quiz.questions.map((question, index) => (
@@ -139,21 +142,30 @@ export default function EditQuizPage({ params }: { params: { id: string } }) {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor={`q-text-${question.id}`}>Question Text</Label>
-                                    <Input id={`q-text-${question.id}`} value={question.text} onChange={e => handleQuestionTextChange(e, question.id)} />
+                                    <Input id={`q-text-${question.id}`} value={question.text} placeholder="Type your question here..." onChange={e => handleQuestionTextChange(e, question.id)} />
                                  </div>
                                 <div className="space-y-2">
                                     <Label>Options</Label>
-                                    <div className="space-y-2">
-                                    {question.options.map(opt => (
-                                        <div key={opt.id} className="flex items-center gap-2">
-                                            <Input value={opt.text} onChange={e => handleOptionTextChange(e, question.id, opt.id)}/>
-                                            <div className="flex items-center gap-1.5">
-                                                <input type="radio" name={`correct-ans-${question.id}`} id={`${question.id}-${opt.id}`} value={opt.id} checked={question.correctAnswerId === opt.id} onChange={() => handleCorrectAnswerChange(question.id, opt.id)} />
-                                                <Label htmlFor={`${question.id}-${opt.id}`}>Correct</Label>
+                                    <RadioGroup 
+                                        value={question.correctAnswerId} 
+                                        onValueChange={(optionId) => handleCorrectAnswerChange(question.id, optionId)}
+                                        className="space-y-2"
+                                    >
+                                        {question.options.map((opt, optIndex) => (
+                                            <div key={opt.id} className="flex items-center gap-2">
+                                                <RadioGroupItem value={opt.id} id={`${question.id}-${opt.id}`} />
+                                                <Label htmlFor={`${question.id}-${opt.id}`} className="flex-1">
+                                                    <Input 
+                                                        value={opt.text} 
+                                                        placeholder={`Option ${optIndex + 1}`}
+                                                        onChange={e => handleOptionTextChange(e, question.id, opt.id)}
+                                                        className={cn(question.correctAnswerId === opt.id && "border-green-500 ring-2 ring-green-200 dark:ring-green-800")}
+                                                    />
+                                                </Label>
+                                                {question.correctAnswerId === opt.id && <Check className="h-5 w-5 text-green-500" />}
                                             </div>
-                                        </div>
-                                    ))}
-                                    </div>
+                                        ))}
+                                    </RadioGroup>
                                 </div>
                             </div>
                         ))}

@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -27,6 +28,15 @@ import type { Quiz, Question } from "@/lib/types";
 import { getAIFeedback } from "@/app/quiz/actions";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+interface ResultDetails {
+  question: string;
+  selectedAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+}
 
 export default function QuizView({ quiz }: { quiz: Quiz }) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -36,6 +46,7 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
   const [score, setScore] = useState(0);
   const [aiFeedback, setAIFeedback] = useState("");
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
+  const [resultDetails, setResultDetails] = useState<ResultDetails[]>([]);
   const { toast } = useToast();
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
@@ -48,15 +59,30 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
     let correctAnswersCount = 0;
     const correctQuestions: string[] = [];
     const incorrectQuestions: string[] = [];
+    const details: ResultDetails[] = [];
 
     quiz.questions.forEach((q) => {
-      if (answers[q.id] === q.correctAnswerId) {
+      const selectedOptionId = answers[q.id];
+      const correctOption = q.options.find(opt => opt.id === q.correctAnswerId);
+      const selectedOption = q.options.find(opt => opt.id === selectedOptionId);
+
+      const isCorrect = selectedOptionId === q.correctAnswerId;
+      if (isCorrect) {
         correctAnswersCount++;
         correctQuestions.push(q.text);
       } else {
         incorrectQuestions.push(q.text);
       }
+      
+      details.push({
+        question: q.text,
+        selectedAnswer: selectedOption?.text || "Not Answered",
+        correctAnswer: correctOption?.text || "N/A",
+        isCorrect: isCorrect,
+      });
     });
+
+    setResultDetails(details);
 
     const calculatedScore = Math.round(
       (correctAnswersCount / quiz.questions.length) * 100
@@ -143,14 +169,19 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
               onValueChange={(value) =>
                 handleAnswerChange(currentQuestion.id, value)
               }
+              className="space-y-2"
             >
               {currentQuestion.options.map((option) => (
-                <div key={option.id} className="flex items-center space-x-2">
+                <Label
+                  key={option.id}
+                  htmlFor={option.id}
+                  className="flex items-center space-x-3 p-3 rounded-md border border-input cursor-pointer hover:bg-accent has-[[data-state=checked]]:bg-primary has-[[data-state=checked]]:text-primary-foreground has-[[data-state=checked]]:border-primary"
+                >
                   <RadioGroupItem value={option.id} id={option.id} />
-                  <Label htmlFor={option.id} className="text-base font-normal">
+                  <span className="text-base font-normal">
                     {option.text}
-                  </Label>
-                </div>
+                  </span>
+                </Label>
               ))}
             </RadioGroup>
           </div>
@@ -169,33 +200,57 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
       </Card>
 
       <Dialog open={isFinished} onOpenChange={setIsFinished}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Quiz Results</DialogTitle>
+            <DialogTitle>Quiz Results: {score}%</DialogTitle>
             <DialogDescription>
-              You scored {score}% on the "{quiz.title}" quiz.
+              Here's how you did on the "{quiz.title}" quiz.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-accent" />
-              Personalized Feedback
-            </h3>
-            {isGeneratingFeedback ? (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Generating feedback...</span>
-              </div>
-            ) : (
-              <div
-                className="prose prose-sm dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: aiFeedback.replace(/\n/g, '<br />') }}
-              />
-            )}
+          <div className="space-y-4 py-4">
+             <ScrollArea className="h-60 w-full pr-4">
+               <div className="space-y-4">
+                {resultDetails.map((result, index) => (
+                  <div key={index} className="p-3 rounded-md border" >
+                      <p className="font-semibold mb-2">{result.question}</p>
+                      <div className={cn(
+                          "flex items-center gap-2 p-2 rounded-md text-sm",
+                          result.isCorrect ? "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300" : "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300"
+                      )}>
+                          {result.isCorrect ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                          <span>Your answer: {result.selectedAnswer}</span>
+                      </div>
+                      {!result.isCorrect && (
+                          <div className="flex items-center gap-2 p-2 mt-1 rounded-md text-sm bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                             <CheckCircle className="h-4 w-4 text-green-600" />
+                             <span>Correct answer: {result.correctAnswer}</span>
+                          </div>
+                      )}
+                  </div>
+                ))}
+               </div>
+            </ScrollArea>
+             <div className="p-3 border rounded-lg space-y-2">
+                <h3 className="font-semibold flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-accent" />
+                    Personalized Feedback
+                </h3>
+                {isGeneratingFeedback ? (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Generating feedback...</span>
+                </div>
+                ) : (
+                <div
+                    className="prose prose-sm dark:prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: aiFeedback.replace(/\n/g, '<br />') }}
+                />
+                )}
+            </div>
           </div>
           <DialogFooter>
-            <Button asChild>
-              <Link href="/">Back to Dashboard</Link>
+            <Button asChild className="w-full">
+              <Link href="/student/dashboard">Back to Dashboard</Link>
             </Button>
           </DialogFooter>
         </DialogContent>
