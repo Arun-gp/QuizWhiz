@@ -11,15 +11,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
-export default function StudentLoginPage() {
+export default function StudentSignUpPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Student Login</CardTitle>
-          <CardDescription>Enter your credentials to access your dashboard.</CardDescription>
+          <CardTitle>Student Sign Up</CardTitle>
+          <CardDescription>Create your account to start taking quizzes.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <Input id="name" type="text" placeholder="John Doe" required />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" placeholder="student@example.com" required />
@@ -31,10 +35,10 @@ export default function StudentLoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button className="w-full" asChild>
-            <Link href="/student/dashboard">Login</Link>
+            <Link href="/student/dashboard">Sign Up</Link>
           </Button>
           <p className="text-xs text-center text-muted-foreground">
-            New here? <Link href="/student/signup" className="underline">Sign up</Link>
+            Already have an account? <Link href="/student/login" className="underline">Log in</Link>
           </p>
         </CardFooter>
       </Card>
