@@ -12,6 +12,7 @@ import {
   Users,
   Moon,
   Sun,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
@@ -40,6 +41,8 @@ import {
   DropdownMenuSubContent
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
+
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -52,10 +55,20 @@ export default function MainLayout({
 }: MainLayoutProps) {
   const pathname = usePathname();
   const { setTheme } = useTheme();
+  const { toast } = useToast();
   const isActive = (path: string) => pathname === path;
   
   const isStudent = userType === "student";
   const user = isStudent ? { name: "Student User", home: "/student/dashboard", quizzes: "/student/dashboard" } : { name: "Teacher Admin", home: "/teacher/dashboard", quizzes: "/teacher/dashboard" };
+  
+  const handleChangePicture = () => {
+    // In a real app, this would open a file dialog to upload a new picture.
+    // For this prototype, we'll just show a toast notification.
+    toast({
+        title: "Feature not implemented",
+        description: "You'll be able to change your profile picture soon!",
+    });
+  }
 
 
   return (
@@ -141,8 +154,14 @@ export default function MainLayout({
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuItem>
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleChangePicture}>
+                    <ImageIcon className="mr-2 h-4 w-4" />
+                    Change Picture
+                </DropdownMenuItem>
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
                     <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
