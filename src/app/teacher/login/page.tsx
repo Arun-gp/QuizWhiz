@@ -24,7 +24,7 @@ export default function TeacherLoginPage() {
   const handleLogin = () => {
     // In a real application, you should never hardcode credentials.
     // This should be handled by a secure authentication system like Firebase Auth.
-    if (email === "teacher@example.com" && password === "123@") {
+    if (email === "admin123@exam.com" && password === "87654321") {
       router.push("/teacher/dashboard");
     } else {
       toast({
