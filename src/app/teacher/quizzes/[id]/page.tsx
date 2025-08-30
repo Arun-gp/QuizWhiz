@@ -18,7 +18,8 @@ export default function EditQuizPage({ params }: { params: { id: string } }) {
     const router = useRouter();
     const { toast } = useToast();
     const [quizzes, setQuizzes] = useState(initialQuizzes);
-    const [quiz, setQuiz] = useState<Quiz | undefined>(quizzes.find((q) => q.id === params.id));
+    const existingQuiz = quizzes.find((q) => q.id === params.id);
+    const [quiz, setQuiz] = useState<Quiz | undefined>(existingQuiz);
 
     if (!quiz) {
         notFound();
@@ -139,7 +140,7 @@ export default function EditQuizPage({ params }: { params: { id: string } }) {
                                 <div className="space-y-2">
                                     <Label htmlFor={`q-text-${question.id}`}>Question Text</Label>
                                     <Input id={`q-text-${question.id}`} value={question.text} onChange={e => handleQuestionTextChange(e, question.id)} />
-                                </div>
+                                 </div>
                                 <div className="space-y-2">
                                     <Label>Options</Label>
                                     <div className="space-y-2">
