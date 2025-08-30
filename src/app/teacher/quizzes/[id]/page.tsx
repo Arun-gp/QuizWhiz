@@ -29,12 +29,16 @@ export default function EditQuizPage({ params }: { params: { id: string } }) {
         const newQuestionId = `q${quiz.questions.length + 1}-${Date.now()}`;
         const newOptionId1 = `o1-${Date.now()}`;
         const newOptionId2 = `o2-${Date.now()}`;
+        const newOptionId3 = `o3-${Date.now()}`;
+        const newOptionId4 = `o4-${Date.now()}`;
         const newQuestion: Question = {
             id: newQuestionId,
             text: '',
             options: [
                 { id: newOptionId1, text: '' },
                 { id: newOptionId2, text: '' },
+                { id: newOptionId3, text: '' },
+                { id: newOptionId4, text: '' },
             ],
             correctAnswerId: newOptionId1,
         };
