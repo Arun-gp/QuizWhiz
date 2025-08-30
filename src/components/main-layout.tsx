@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -9,7 +10,10 @@ import {
   UserCircle,
   Menu,
   Users,
+  Moon,
+  Sun,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import {
   Sidebar,
   SidebarHeader,
@@ -30,6 +34,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -43,6 +51,7 @@ export default function MainLayout({
   userType = "student",
 }: MainLayoutProps) {
   const pathname = usePathname();
+  const { setTheme } = useTheme();
   const isActive = (path: string) => pathname === path;
   
   const isStudent = userType === "student";
@@ -107,7 +116,7 @@ export default function MainLayout({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={`https://i.pravatar.cc/40?u=${userType}`} />
+                  <AvatarImage data-ai-hint="profile picture" src={`https://i.pravatar.cc/40?u=${userType}`} />
                   <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <span className="font-medium text-sm">{user.name}</span>
@@ -121,7 +130,12 @@ export default function MainLayout({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
-                  <UserCircle />
+                    <Avatar>
+                        <AvatarImage data-ai-hint="profile picture" src={`https://i.pravatar.cc/40?u=${userType}`} />
+                        <AvatarFallback>
+                            <UserCircle />
+                        </AvatarFallback>
+                    </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -129,6 +143,27 @@ export default function MainLayout({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Profile</DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    <span className="ml-2">Toggle theme</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => setTheme("light")}>
+                        Light
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setTheme("dark")}>
+                        Dark
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setTheme("system")}>
+                        System
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                     <Link href="/">Logout</Link>
