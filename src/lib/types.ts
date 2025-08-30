@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   name: string;
@@ -23,7 +24,7 @@ export interface Quiz {
   description: string;
   duration: number; // in minutes
   questions: Question[];
-  authorId: string;
+  authorId?: string;
 }
 
 export interface LeaderboardEntry {
