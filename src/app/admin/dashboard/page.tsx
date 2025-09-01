@@ -62,13 +62,19 @@ export default function AdminDashboardPage() {
             // In a real app, this should be a secure server-side action.
             // For this demo, we'll create the user on the client-side.
             // This is not recommended for production environments.
-            const tempAuth = auth; // Use the existing auth instance
-            const userCredential = await createUserWithEmailAndPassword(tempAuth, newUser.email, newUser.password);
+            const userCredential = await createUserWithEmailAndPassword(auth, newUser.email, newUser.password);
 
             const userToAdd: User = {
                 id: userCredential.user.uid,
-                ...newUser,
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role,
             }
+
+            // This is a temporary solution for the demo to persist the new user.
+            // In a real app, you would save this to a database.
+            users.push(userToAdd);
+
             setAllUsers([...allUsers, userToAdd]);
             setIsAddUserDialogOpen(false);
             toast({

@@ -28,6 +28,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 
 export default function TeacherDashboardPage() {
@@ -37,16 +39,16 @@ export default function TeacherDashboardPage() {
     const [isEditStudentDialogOpen, setIsEditStudentDialogOpen] = useState(false);
     const [isDeleteStudentDialogOpen, setIsDeleteStudentDialogOpen] = useState(false);
     const [currentStudent, setCurrentStudent] = useState<User | null>(null);
-    const [newStudent, setNewStudent] = useState<{name: string, email: string}>({name: '', email: ''});
+    const [newStudent, setNewStudent] = useState<{name: string, email: string, password: string}>({name: '', email: '', password: ''});
     const { toast } = useToast();
 
     const handleOpenAddDialog = () => {
-        setNewStudent({ name: '', email: ''});
+        setNewStudent({ name: '', email: '', password: ''});
         setIsAddStudentDialogOpen(true);
     };
 
-    const handleAddStudent = () => {
-        if(!newStudent.name || !newStudent.email) {
+    const handleAddStudent = async () => {
+        if(!newStudent.name || !newStudent.email || !newStudent.password) {
             toast({
                 variant: 'destructive',
                 title: 'Error',
@@ -54,17 +56,35 @@ export default function TeacherDashboardPage() {
             })
             return;
         }
-        const studentToAdd: User = {
-            id: `user-${Date.now()}`,
-            ...newStudent,
-            role: 'student',
+        
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, newStudent.email, newStudent.password);
+            const studentToAdd: User = {
+                id: userCredential.user.uid,
+                name: newStudent.name,
+                email: newStudent.email,
+                role: 'student',
+            }
+
+            // This is a temporary solution for the demo to persist the new user.
+            // In a real app, you would save this to a database.
+            initialUsers.push(studentToAdd);
+
+            setStudents([...students, studentToAdd]);
+            setIsAddStudentDialogOpen(false);
+            toast({
+                title: 'Success',
+                description: `Student added successfully.`
+            })
+
+        } catch (error: any) {
+            console.error("Error creating user:", error);
+             toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: error.message || 'Could not create user.'
+            })
         }
-        setStudents([...students, studentToAdd]);
-        setIsAddStudentDialogOpen(false);
-        toast({
-            title: 'Success',
-            description: `Student added successfully.`
-        })
     };
 
     const handleOpenEditDialog = (student: User) => {
@@ -202,6 +222,10 @@ export default function TeacherDashboardPage() {
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
                         <Input id="email" type="email" value={newStudent.email} onChange={(e) => setNewStudent({...newStudent, email: e.target.value})}/>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input id="password" type="password" value={newStudent.password} onChange={(e) => setNewStudent({...newStudent, password: e.target.value})}/>
                     </div>
                 </div>
                 <DialogFooter>
