@@ -27,6 +27,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 export default function AdminDashboardPage() {
     const [allUsers, setAllUsers] = useState<User[]>(users);
@@ -34,7 +36,7 @@ export default function AdminDashboardPage() {
     const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
     const [isDeleteUserDialogOpen, setIsDeleteUserDialogOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [newUser, setNewUser] = useState<{name: string, email: string, role: 'teacher' | 'student'}>({name: '', email: '', role: 'teacher'});
+    const [newUser, setNewUser] = useState<{name: string, email: string, password: string, role: 'teacher' | 'student'}>({name: '', email: '', password: '', role: 'teacher'});
     const { toast } = useToast();
 
     const teachers = allUsers.filter(u => u.role === 'teacher');
@@ -42,12 +44,12 @@ export default function AdminDashboardPage() {
     const [activeTab, setActiveTab] = useState<"teachers" | "students">("teachers");
 
     const handleOpenAddDialog = (role: 'teacher' | 'student') => {
-        setNewUser({ name: '', email: '', role });
+        setNewUser({ name: '', email: '', password: '', role });
         setIsAddUserDialogOpen(true);
     };
 
-    const handleAddUser = () => {
-        if(!newUser.name || !newUser.email) {
+    const handleAddUser = async () => {
+        if(!newUser.name || !newUser.email || !newUser.password) {
             toast({
                 variant: 'destructive',
                 title: 'Error',
@@ -55,17 +57,33 @@ export default function AdminDashboardPage() {
             })
             return;
         }
-        const userToAdd: User = {
-            id: `user-${Date.now()}`,
-            ...newUser,
-            password: 'password123' // In a real app, this would be securely generated
+
+        try {
+            // In a real app, this should be a secure server-side action.
+            // For this demo, we'll create the user on the client-side.
+            // This is not recommended for production environments.
+            const tempAuth = auth; // Use the existing auth instance
+            const userCredential = await createUserWithEmailAndPassword(tempAuth, newUser.email, newUser.password);
+
+            const userToAdd: User = {
+                id: userCredential.user.uid,
+                ...newUser,
+            }
+            setAllUsers([...allUsers, userToAdd]);
+            setIsAddUserDialogOpen(false);
+            toast({
+                title: 'Success',
+                description: `${newUser.role === 'teacher' ? 'Teacher' : 'Student'} added successfully.`
+            })
+
+        } catch (error: any) {
+            console.error("Error creating user:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: error.message || 'Could not create user.'
+            })
         }
-        setAllUsers([...allUsers, userToAdd]);
-        setIsAddUserDialogOpen(false);
-        toast({
-            title: 'Success',
-            description: `${newUser.role === 'teacher' ? 'Teacher' : 'Student'} added successfully.`
-        })
     };
 
     const handleOpenEditDialog = (user: User) => {
@@ -175,6 +193,10 @@ export default function AdminDashboardPage() {
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
                         <Input id="email" type="email" value={newUser.email} onChange={(e) => setNewUser({...newUser, email: e.target.value})}/>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input id="password" type="password" value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})}/>
                     </div>
                 </div>
                 <DialogFooter>
