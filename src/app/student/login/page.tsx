@@ -15,7 +15,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -54,7 +55,6 @@ export default function StudentLoginPage() {
   const [password, setPassword] = useState("");
   const router = useRouter();
   const { toast } = useToast();
-  const auth = getAuth();
 
 
   const handleLogin = async () => {

@@ -44,7 +44,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { getAuth, signOut } from "firebase/auth";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 
 
@@ -61,7 +62,6 @@ export default function MainLayout({
   const { setTheme } = useTheme();
   const { toast } = useToast();
   const router = useRouter();
-  const auth = getAuth();
   const isActive = (path: string) => pathname.startsWith(path);
   
   const userConfig = {
