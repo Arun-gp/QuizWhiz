@@ -18,7 +18,6 @@ import { useToast } from "@/hooks/use-toast";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { users } from "@/lib/data";
-import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -106,9 +105,6 @@ export default function LoginPage() {
           <Button className="w-full" onClick={handleLogin}>
             Login
           </Button>
-           <p className="text-xs text-center text-muted-foreground">
-            New here? <Link href="/student/signup" className="underline">Sign up</Link>
-          </p>
         </CardFooter>
       </Card>
     </div>
