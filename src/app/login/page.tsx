@@ -18,10 +18,12 @@ import { useToast } from "@/hooks/use-toast";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { users } from "@/lib/data";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -89,16 +91,27 @@ export default function LoginPage() {
               onKeyDown={handleKeyPress}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 relative">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={handleKeyPress}
+              className="pr-10"
             />
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute top-1/2 right-1 h-8 w-8 transform text-muted-foreground"
+                onClick={() => setShowPassword(!showPassword)}
+            >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
+            </Button>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
