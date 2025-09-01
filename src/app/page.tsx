@@ -11,7 +11,7 @@ export default function Home() {
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[400px] gap-6 px-4 text-center">
-          <div className="space-y-4">
+          <div className="space-y-6">
             <TypingTitle text="Welcome to QuizWhiz" />
             <p className="text-muted-foreground md:text-xl">
               Your journey to knowledge starts here. Engage, learn, and conquer with our interactive quizzes.
