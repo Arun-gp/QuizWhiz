@@ -6,6 +6,7 @@ export const users: User[] = [
   { id: 'teacher-1', name: 'Teacher One', email: 'teacher@gmail.com', role: 'teacher' },
   { id: 'student-1', name: 'Student One', email: 'student@gmail.com', role: 'student', marks: { '1': 80, '2': 90 } },
   { id: 'student-2', name: 'Student Two', email: 'student2@example.com', role: 'student', marks: { '1': 70 } },
+  { id: 'google-user-1', name: 'Google User', email: 'user@google.com', role: 'student' }
 ];
 
 export const quizzes: Quiz[] = [
