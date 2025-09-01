@@ -1,4 +1,12 @@
-import type { Quiz, LeaderboardEntry, ProgressData } from './types';
+
+import type { Quiz, LeaderboardEntry, ProgressData, User } from './types';
+
+export const users: User[] = [
+  { id: 'admin-1', name: 'Admin User', email: 'admin@gmail.com', role: 'admin' },
+  { id: 'teacher-1', name: 'Teacher One', email: 'teacher@gmail.com', role: 'teacher' },
+  { id: 'student-1', name: 'Student One', email: 'student@gmail.com', role: 'student', marks: { '1': 80, '2': 90 } },
+  { id: 'student-2', name: 'Student Two', email: 'student2@example.com', role: 'student', marks: { '1': 70 } },
+];
 
 export const quizzes: Quiz[] = [
   {
@@ -6,6 +14,7 @@ export const quizzes: Quiz[] = [
     title: 'General Knowledge 101',
     description: 'A fun quiz to test your general knowledge on various topics.',
     duration: 10,
+    authorId: 'teacher-1',
     questions: [
       {
         id: 'q1',
@@ -47,6 +56,7 @@ export const quizzes: Quiz[] = [
     title: 'Basic Science',
     description: 'Test your fundamental knowledge of science.',
     duration: 15,
+    authorId: 'teacher-1',
     questions: [
       {
         id: 'q1',

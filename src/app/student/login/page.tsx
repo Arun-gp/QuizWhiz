@@ -1,4 +1,5 @@
 
+"use client";
 import {
   Card,
   CardContent,
@@ -11,6 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -45,6 +50,35 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export default function StudentLoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const router = useRouter();
+  const { toast } = useToast();
+  const auth = getAuth();
+
+
+  const handleLogin = async () => {
+    if (email !== "student@gmail.com" || password !== "123456") {
+      toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: "Invalid student credentials.",
+        });
+      return;
+    }
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push("/student/dashboard");
+    } catch (error) {
+      console.error("Firebase authentication error:", error);
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: "Please check your email and password and try again.",
+      });
+    }
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
@@ -69,16 +103,16 @@ export default function StudentLoginPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="student@example.com" required />
+            <Input id="email" type="email" placeholder="student@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required />
+            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full" asChild>
-            <Link href="/student/dashboard">Login</Link>
+          <Button className="w-full" onClick={handleLogin}>
+            Login
           </Button>
           <p className="text-xs text-center text-muted-foreground">
             New here? <Link href="/student/signup" className="underline">Sign up</Link>

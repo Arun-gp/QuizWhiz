@@ -13,6 +13,8 @@ import {
   Moon,
   Sun,
   Image as ImageIcon,
+  LogOut,
+  UserCog
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
@@ -42,11 +44,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { getAuth, signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  userType?: "student" | "teacher";
+  userType?: "student" | "teacher" | "admin";
 }
 
 export default function MainLayout({
@@ -56,18 +60,88 @@ export default function MainLayout({
   const pathname = usePathname();
   const { setTheme } = useTheme();
   const { toast } = useToast();
-  const isActive = (path: string) => pathname === path;
+  const router = useRouter();
+  const auth = getAuth();
+  const isActive = (path: string) => pathname.startsWith(path);
   
-  const isStudent = userType === "student";
-  const user = isStudent ? { name: "Student User", home: "/student/dashboard", quizzes: "/student/dashboard" } : { name: "Teacher Admin", home: "/teacher/dashboard", quizzes: "/teacher/dashboard" };
+  const userConfig = {
+      student: { name: "Student User", home: "/student/dashboard", quizzes: "/student/dashboard" },
+      teacher: { name: "Teacher Admin", home: "/teacher/dashboard", quizzes: "/teacher/dashboard" },
+      admin: { name: "Admin", home: "/admin/dashboard", accounts: "/admin/dashboard" }
+  }
+
+  const user = userConfig[userType];
   
   const handleChangePicture = () => {
-    // In a real app, this would open a file dialog to upload a new picture.
-    // For this prototype, we'll just show a toast notification.
     toast({
         title: "Feature not implemented",
         description: "You'll be able to change your profile picture soon!",
     });
+  }
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/');
+  }
+
+  const getMenuItems = () => {
+    switch (userType) {
+        case "admin":
+            return (
+                <>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive(user.home)} tooltip="Dashboard">
+                            <Link href={user.home}><LayoutDashboard /><span>Dashboard</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive(user.accounts || '')} tooltip="Accounts">
+                            <Link href={user.accounts || ''}><UserCog /><span>Accounts</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </>
+            )
+        case "teacher":
+            return (
+                <>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive(user.home)} tooltip="Dashboard">
+                          <Link href={user.home}><LayoutDashboard /><span>Dashboard</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive("/teacher/quizzes")} tooltip="Quizzes">
+                            <Link href={user.quizzes}><FileText /><span>Quizzes</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                     <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive("/teacher/students")} tooltip="Students">
+                            <Link href="/teacher/students"><Users /><span>Students</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </>
+            )
+        default: // student
+            return (
+                <>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive(user.home)} tooltip="Dashboard">
+                            <Link href={user.home}><LayoutDashboard /><span>Dashboard</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive("/quiz")} tooltip="Quizzes">
+                            <Link href={user.quizzes}><FileText /><span>Quizzes</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive("/leaderboard")} tooltip="Leaderboard">
+                            <Link href="/leaderboard"><Trophy /><span>Leaderboard</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </>
+            )
+    }
   }
 
 
@@ -85,44 +159,7 @@ export default function MainLayout({
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive(user.home)}
-                  tooltip="Dashboard"
-                >
-                  <Link href={user.home}>
-                    <LayoutDashboard />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname.startsWith("/quiz") || pathname.startsWith("/teacher/quizzes")}
-                  tooltip="Quizzes"
-                >
-                  <Link href={user.quizzes}>
-                    <FileText />
-                    <span>Quizzes</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              {isStudent && (
-                 <SidebarMenuItem>
-                    <SidebarMenuButton
-                    asChild
-                    isActive={isActive("/leaderboard")}
-                    tooltip="Leaderboard"
-                    >
-                    <Link href="/leaderboard">
-                        <Trophy />
-                        <span>Leaderboard</span>
-                    </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
+              {getMenuItems()}
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
@@ -184,8 +221,9 @@ export default function MainLayout({
                 </DropdownMenuSub>
 
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                    <Link href="/">Logout</Link>
+                <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

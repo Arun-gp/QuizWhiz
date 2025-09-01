@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
-export default function TeacherLoginPage() {
+export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
@@ -25,17 +25,18 @@ export default function TeacherLoginPage() {
   const auth = getAuth();
 
   const handleLogin = async () => {
-    if (email !== "teacher@gmail.com" || password !== "123456") {
+    // In a real application, you should never hardcode credentials.
+    if (email !== "admin@gmail.com" || password !== "123456") {
         toast({
             variant: "destructive",
             title: "Login Failed",
-            description: "Invalid teacher credentials.",
+            description: "Invalid admin credentials.",
           });
         return;
     }
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/teacher/dashboard");
+        await signInWithEmailAndPassword(auth, email, password);
+        router.push("/admin/dashboard");
     } catch (error) {
       console.error("Firebase authentication error:", error);
       toast({
@@ -57,9 +58,9 @@ export default function TeacherLoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Teacher Login</CardTitle>
+          <CardTitle>Admin Login</CardTitle>
           <CardDescription>
-            Enter your credentials to access the teacher panel.
+            Enter your credentials to access the admin panel.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -68,7 +69,7 @@ export default function TeacherLoginPage() {
             <Input
               id="email"
               type="email"
-              placeholder="teacher@example.com"
+              placeholder="admin@gmail.com"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}

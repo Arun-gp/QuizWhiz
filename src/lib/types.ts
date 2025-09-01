@@ -1,9 +1,11 @@
 
+
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'student' | 'teacher';
+  role: 'student' | 'teacher' | 'admin';
+  marks?: Record<string, number>;
 }
 
 export interface Option {
@@ -38,3 +40,4 @@ export interface ProgressData {
   quiz: string;
   score: number;
 }
+
