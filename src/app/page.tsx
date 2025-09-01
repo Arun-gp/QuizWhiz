@@ -9,7 +9,7 @@ import TypingTitle from "@/components/typing-title";
 export default function Home() {
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-12 lg:py-24">
         <div className="mx-auto grid w-[450px] gap-6 px-4 text-center">
           <div className="space-y-4">
             <TypingTitle text="Welcome to QuizWhiz" />
