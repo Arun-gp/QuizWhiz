@@ -57,7 +57,7 @@ export default function TeacherDashboardPage() {
             return;
         }
         
-        if (students.some(student => student.email === newStudent.email) || initialUsers.some(u => u.email === newStudent.email)) {
+        if (initialUsers.some(user => user.email === newStudent.email)) {
             toast({
                 variant: 'destructive',
                 title: 'Error',
