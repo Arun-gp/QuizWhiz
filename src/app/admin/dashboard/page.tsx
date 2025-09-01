@@ -105,7 +105,6 @@ export default function AdminDashboardPage() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
-              {activeTab === 'students' && <TableHead>Marks</TableHead>}
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -114,7 +113,6 @@ export default function AdminDashboardPage() {
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
-                {activeTab === 'students' && <TableCell>{user.marks ? Object.values(user.marks).reduce((a, b) => a + b, 0) / Object.values(user.marks).length : 'N/A'}</TableCell>}
                 <TableCell className="text-right">
                   <Button variant="ghost" size="icon" onClick={() => onEdit(user)}>
                     <Edit className="h-4 w-4" />
