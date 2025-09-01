@@ -3,9 +3,8 @@
 
 import MainLayout from "@/components/main-layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { users } from "@/lib/data";
 import type { User } from "@/lib/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import {
@@ -28,16 +27,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { ref, set, get, child, remove } from "firebase/database";
 
 export default function AdminDashboardPage() {
-    const [allUsers, setAllUsers] = useState<User[]>(users);
+    const [allUsers, setAllUsers] = useState<User[]>([]);
     const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
     const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
     const [isDeleteUserDialogOpen, setIsDeleteUserDialogOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [newUser, setNewUser] = useState<{name: string, email: string, password: string, role: 'teacher' | 'student'}>({name: '', email: '', password: '', role: 'teacher'});
     const { toast } = useToast();
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            const dbRef = ref(db);
+            const snapshot = await get(child(dbRef, 'users'));
+            if (snapshot.exists()) {
+                const usersData = snapshot.val();
+                const usersList = Object.keys(usersData).map(key => ({
+                    id: key,
+                    ...usersData[key]
+                }));
+                setAllUsers(usersList);
+            }
+        };
+        fetchUsers();
+    }, []);
 
     const teachers = allUsers.filter(u => u.role === 'teacher');
     const students = allUsers.filter(u => u.role === 'student');
@@ -58,33 +74,17 @@ export default function AdminDashboardPage() {
             return;
         }
 
-        if (allUsers.some(user => user.email === newUser.email)) {
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'A user with this email already exists.'
-            })
-            return;
-        }
-
         try {
-            // In a real app, this should be a secure server-side action.
-            // For this demo, we'll create the user on the client-side.
-            // This is not recommended for production environments.
             const userCredential = await createUserWithEmailAndPassword(auth, newUser.email, newUser.password);
-
-            const userToAdd: User = {
-                id: userCredential.user.uid,
+            const userToAdd: Omit<User, 'id'> = {
                 name: newUser.name,
                 email: newUser.email,
                 role: newUser.role,
             }
+            
+            await set(ref(db, 'users/' + userCredential.user.uid), userToAdd);
 
-            // This is a temporary solution for the demo to persist the new user.
-            // In a real app, you would save this to a database.
-            users.push(userToAdd);
-
-            setAllUsers([...allUsers, userToAdd]);
+            setAllUsers([...allUsers, { ...userToAdd, id: userCredential.user.uid }]);
             setIsAddUserDialogOpen(false);
             toast({
                 title: 'Success',
@@ -112,14 +112,29 @@ export default function AdminDashboardPage() {
         setIsEditUserDialogOpen(true);
     };
 
-    const handleUpdateUser = () => {
+    const handleUpdateUser = async () => {
         if(!currentUser) return;
-        setAllUsers(allUsers.map(u => u.id === currentUser.id ? currentUser : u));
-        setIsEditUserDialogOpen(false);
-        toast({
-            title: 'Success',
-            description: 'User updated successfully.'
-        })
+
+        try {
+            const userToUpdate = {
+                name: currentUser.name,
+                email: currentUser.email,
+                role: currentUser.role,
+            };
+            await set(ref(db, 'users/' + currentUser.id), userToUpdate);
+            setAllUsers(allUsers.map(u => u.id === currentUser.id ? currentUser : u));
+            setIsEditUserDialogOpen(false);
+            toast({
+                title: 'Success',
+                description: 'User updated successfully.'
+            })
+        } catch (error) {
+             toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to update user.'
+            })
+        }
     }
 
     const handleOpenDeleteDialog = (user: User) => {
@@ -127,14 +142,25 @@ export default function AdminDashboardPage() {
         setIsDeleteUserDialogOpen(true);
     };
 
-    const handleDeleteUser = () => {
+    const handleDeleteUser = async () => {
         if(!currentUser) return;
-        setAllUsers(allUsers.filter(u => u.id !== currentUser.id));
-        setIsDeleteUserDialogOpen(false);
-        toast({
-            title: 'Success',
-            description: 'User deleted successfully.'
-        })
+        try {
+            // Note: Deleting from Firebase auth requires server-side logic (Admin SDK)
+            // This will only remove the user from the database.
+            await remove(ref(db, 'users/' + currentUser.id));
+            setAllUsers(allUsers.filter(u => u.id !== currentUser.id));
+            setIsDeleteUserDialogOpen(false);
+            toast({
+                title: 'Success',
+                description: 'User deleted successfully from database.'
+            })
+        } catch(e) {
+             toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to delete user.'
+            })
+        }
     }
 
 
@@ -240,7 +266,7 @@ export default function AdminDashboardPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="edit-email">Email</Label>
-                            <Input id="edit-email" type="email" value={currentUser.email} onChange={(e) => setCurrentUser({...currentUser, email: e.target.value})}/>
+                            <Input id="edit-email" type="email" value={currentUser.email} readOnly disabled/>
                         </div>
                     </div>
                 )}
@@ -256,7 +282,7 @@ export default function AdminDashboardPage() {
                 <DialogHeader>
                     <DialogTitle>Delete User</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete {currentUser?.name}? This action cannot be undone.
+                        Are you sure you want to delete {currentUser?.name}? This action cannot be undone and will only remove the user from the database, not from Firebase Authentication.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>

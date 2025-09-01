@@ -1,9 +1,35 @@
-import { quizzes } from "@/lib/data";
+
+'use client';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import ProgressChart from "./progress-chart";
 import QuizCard from "./quiz-card";
+import { useEffect, useState } from "react";
+import { Quiz } from "@/lib/types";
+import { ref, onValue } from "firebase/database";
+import { db } from "@/lib/firebase";
 
 export default function Dashboard() {
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+
+  useEffect(() => {
+    const quizzesRef = ref(db, 'quizzes');
+    const unsubscribe = onValue(quizzesRef, (snapshot) => {
+        if(snapshot.exists()){
+            const quizzesData = snapshot.val();
+            const quizzesList: Quiz[] = Object.keys(quizzesData).map(key => ({
+                id: key,
+                ...quizzesData[key],
+                 questions: quizzesData[key].questions || []
+            }));
+            setQuizzes(quizzesList);
+        } else {
+            setQuizzes([]);
+        }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <div className="space-y-8">
       <div>

@@ -1,9 +1,8 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MainLayout from "@/components/main-layout";
-import { quizzes as initialQuizzes } from "@/lib/data";
 import { notFound, useRouter, useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,25 +14,74 @@ import type { Quiz, Question, Option } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-
+import { db } from '@/lib/firebase';
+import { ref, get, set, child } from 'firebase/database';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function EditQuizPage() {
     const router = useRouter();
     const params = useParams();
+    const quizId = params.id as string;
     const { toast } = useToast();
-    const [quizzes, setQuizzes] = useState(initialQuizzes);
-
-    const existingQuiz = quizzes.find((q) => q.id === params.id);
     
-    const [quiz, setQuiz] = useState<Quiz | undefined>(existingQuiz);
+    const [quiz, setQuiz] = useState<Quiz | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!quizId) return;
+        const fetchQuiz = async () => {
+            const quizRef = ref(db, `quizzes/${quizId}`);
+            const snapshot = await get(quizRef);
+            if (snapshot.exists()) {
+                const quizData = snapshot.val();
+                setQuiz({ 
+                    id: quizId, 
+                    ...quizData,
+                    questions: quizData.questions || [] // Ensure questions is always an array
+                });
+            } else {
+                notFound();
+            }
+            setLoading(false);
+        };
+        fetchQuiz();
+    }, [quizId]);
+
+    if (loading) {
+        return (
+            <MainLayout userType="teacher">
+                 <div className="space-y-8">
+                    <Card>
+                        <CardHeader>
+                            <Skeleton className="h-8 w-1/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-20 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                           <Skeleton className="h-8 w-1/3" />
+                        </CardHeader>
+                        <CardContent>
+                            <Skeleton className="h-40 w-full" />
+                        </CardContent>
+                    </Card>
+                 </div>
+            </MainLayout>
+        )
+    }
 
     if (!quiz) {
-        notFound();
+        return notFound();
     }
     
     const handleAddQuestion = () => {
         if (!quiz) return;
-        const newQuestionId = `q${quiz.questions.length + 1}-${Date.now()}`;
+        const newQuestionId = `q${Date.now()}`;
         const newQuestion: Question = {
             id: newQuestionId,
             text: '',
@@ -56,14 +104,24 @@ export default function EditQuizPage() {
         });
     };
     
-    const handleSaveChanges = () => {
-        toast({
-            title: 'Success!',
-            description: 'Your quiz has been saved.',
-        });
-        // Here you would typically save to a database.
-        // For now we just navigate back.
-        router.push('/teacher/dashboard');
+    const handleSaveChanges = async () => {
+        if (!quiz) return;
+        try {
+            const quizToSave = { ...quiz };
+            delete (quizToSave as Partial<Quiz>).id; // Don't save the ID inside the object
+            await set(ref(db, `quizzes/${quiz.id}`), quizToSave);
+            toast({
+                title: 'Success!',
+                description: 'Your quiz has been saved.',
+            });
+            router.push('/teacher/dashboard');
+        } catch(error) {
+             toast({
+                variant: 'destructive',
+                title: 'Error saving quiz',
+                description: 'There was a problem saving your quiz. Please try again.',
+            });
+        }
     }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: keyof Quiz) => {
@@ -121,7 +179,7 @@ export default function EditQuizPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="duration">Duration (minutes)</Label>
-                            <Input id="duration" type="number" value={quiz.duration} onChange={(e) => setQuiz({ ...quiz, duration: parseInt(e.target.value) || 0 })}/>
+                            <Input id="duration" type="number" value={quiz.duration} onChange={(e) => setQuiz({ ...quiz!, duration: parseInt(e.target.value) || 0 })}/>
                         </div>
                     </CardContent>
                 </Card>

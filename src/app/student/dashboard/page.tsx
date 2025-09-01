@@ -2,13 +2,34 @@
 'use client';
 import Dashboard from "@/components/dashboard";
 import MainLayout from "@/components/main-layout";
-import { users } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useState, useEffect } from 'react';
+import { onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "@/lib/firebase";
+import { ref, onValue } from "firebase/database";
+import type { User } from '@/lib/types';
 
 
 export default function StudentDashboardPage() {
-  const student = users.find(u => u.email === "student@gmail.com");
+  const [student, setStudent] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if(user) {
+            const userRef = ref(db, 'users/' + user.uid);
+            onValue(userRef, (snapshot) => {
+                if(snapshot.exists()){
+                    setStudent({id: user.uid, ...snapshot.val()});
+                }
+            })
+        } else {
+            setStudent(null);
+        }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <MainLayout userType="student">
@@ -33,6 +54,11 @@ export default function StudentDashboardPage() {
                                     <TableCell className="text-right">{score}%</TableCell>
                                 </TableRow>
                             ))}
+                             {!student?.marks && (
+                                <TableRow>
+                                    <TableCell colSpan={2} className="text-center">No marks yet.</TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>

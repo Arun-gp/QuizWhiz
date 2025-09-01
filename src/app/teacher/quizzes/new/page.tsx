@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { quizzes } from '@/lib/data';
 import type { Quiz } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { db, auth } from '@/lib/firebase';
+import { ref, push, set } from 'firebase/database';
 
 export default function NewQuizPage() {
     const router = useRouter();
@@ -20,7 +21,7 @@ export default function NewQuizPage() {
     const [description, setDescription] = useState('');
     const [duration, setDuration] = useState('');
 
-    const handleCreateQuiz = () => {
+    const handleCreateQuiz = async () => {
         if (!title || !description || !duration) {
             toast({
                 variant: "destructive",
@@ -30,25 +31,37 @@ export default function NewQuizPage() {
             return;
         }
 
-        const newQuiz: Quiz = {
-            id: `quiz-${Date.now()}`,
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+            toast({ variant: "destructive", title: "Error", description: "You must be logged in to create a quiz." });
+            return;
+        }
+
+        const newQuizRef = push(ref(db, 'quizzes'));
+        const newQuiz: Omit<Quiz, 'id'> = {
             title,
             description,
             duration: parseInt(duration, 10),
             questions: [],
-            authorId: 'teacher-1' // In a real app, this would be the logged-in teacher's ID
+            authorId: currentUser.uid
         };
 
-        // This is where you would save the new quiz to your database.
-        // For this example, we'll just add it to our in-memory data.
-        quizzes.push(newQuiz);
+        try {
+            await set(newQuizRef, newQuiz);
 
-        toast({
-            title: "Quiz Created!",
-            description: "You can now add questions to your new quiz.",
-        });
+            toast({
+                title: "Quiz Created!",
+                description: "You can now add questions to your new quiz.",
+            });
 
-        router.push(`/teacher/quizzes/${newQuiz.id}`);
+            router.push(`/teacher/quizzes/${newQuizRef.key}`);
+        } catch(error) {
+            toast({
+                variant: "destructive",
+                title: "Error creating quiz",
+                description: "There was an issue saving your quiz. Please try again.",
+            });
+        }
     };
 
     return (

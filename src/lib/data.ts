@@ -1,89 +1,11 @@
 
 import type { Quiz, LeaderboardEntry, ProgressData, User } from './types';
 
-export const users: User[] = [
-  { id: 'admin-1', name: 'Admin User', email: 'admin@gmail.com', role: 'admin' },
-  { id: 'teacher-1', name: 'Teacher One', email: 'teacher@gmail.com', role: 'teacher' },
-  { id: 'student-1', name: 'Student One', email: 'student@gmail.com', role: 'student', marks: { '1': 80, '2': 90 } },
-  { id: 'student-2', name: 'Student Two', email: 'student2@example.com', role: 'student', marks: { '1': 70 } },
-  { id: 'google-user-1', name: 'Google User', email: 'user@google.com', role: 'student' }
-];
+// This file is now a backup and type definition provider.
+// All data is fetched from and saved to Firebase Realtime Database.
 
-export const quizzes: Quiz[] = [
-  {
-    id: '1',
-    title: 'General Knowledge 101',
-    description: 'A fun quiz to test your general knowledge on various topics.',
-    duration: 10,
-    authorId: 'teacher-1',
-    questions: [
-      {
-        id: 'q1',
-        text: 'What is the capital of France?',
-        options: [
-          { id: 'o1', text: 'Berlin' },
-          { id: 'o2', text: 'Madrid' },
-          { id: 'o3', text: 'Paris' },
-          { id: 'o4', text: 'Rome' },
-        ],
-        correctAnswerId: 'o3',
-      },
-      {
-        id: 'q2',
-        text: 'Which planet is known as the Red Planet?',
-        options: [
-          { id: 'o1', text: 'Earth' },
-          { id: 'o2', text: 'Mars' },
-          { id: 'o3', text: 'Jupiter' },
-          { id: 'o4', text: 'Venus' },
-        ],
-        correctAnswerId: 'o2',
-      },
-      {
-        id: 'q3',
-        text: 'Who wrote "To Kill a Mockingbird"?',
-        options: [
-            { id: 'o1', text: 'Harper Lee' },
-            { id: 'o2', text: 'J.K. Rowling' },
-            { id: 'o3', text: 'F. Scott Fitzgerald' },
-            { id: 'o4', text: 'Ernest Hemingway' },
-        ],
-        correctAnswerId: 'o1',
-      },
-    ],
-  },
-  {
-    id: '2',
-    title: 'Basic Science',
-    description: 'Test your fundamental knowledge of science.',
-    duration: 15,
-    authorId: 'teacher-1',
-    questions: [
-      {
-        id: 'q1',
-        text: 'What is the chemical symbol for water?',
-        options: [
-          { id: 'o1', text: 'O2' },
-          { id: 'o2', text: 'H2O' },
-          { id: 'o3', text: 'CO2' },
-          { id: 'o4', text: 'NaCl' },
-        ],
-        correctAnswerId: 'o2',
-      },
-      {
-        id: 'q2',
-        text: 'What force keeps us on the ground?',
-        options: [
-            { id: 'o1', text: 'Magnetism' },
-            { id: 'o2', text: 'Friction' },
-            { id: 'o3', text: 'Gravity' },
-            { id: 'o4', text: 'Tension' },
-        ],
-        correctAnswerId: 'o3',
-      }
-    ],
-  },
-];
+export const users: User[] = [];
+export const quizzes: Quiz[] = [];
 
 export const leaderboardData: LeaderboardEntry[] = [
   { rank: 1, name: 'Alex Ray', score: 98, avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026704d' },

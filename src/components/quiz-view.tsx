@@ -25,11 +25,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Timer, Sparkles, Loader2 } from "lucide-react";
 import type { Quiz, Question } from "@/lib/types";
-import { getAIFeedback } from "@/app/quiz/actions";
+import { getAIFeedback, saveQuizResult } from "@/app/quiz/actions";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { auth } from "@/lib/firebase";
 
 interface ResultDetails {
   question: string;
@@ -52,7 +53,7 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
 
-  const handleFinish = useCallback(() => {
+  const handleFinish = useCallback(async () => {
     if (isFinished) return;
 
     setIsFinished(true);
@@ -88,6 +89,11 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
       (correctAnswersCount / quiz.questions.length) * 100
     );
     setScore(calculatedScore);
+
+    const user = auth.currentUser;
+    if (user) {
+        await saveQuizResult(user.uid, quiz.id, calculatedScore);
+    }
 
     setIsGeneratingFeedback(true);
     getAIFeedback({

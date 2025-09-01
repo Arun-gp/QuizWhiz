@@ -5,7 +5,6 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { quizzes as initialQuizzes, users as initialUsers } from "@/lib/data";
 import type { User, Quiz } from '@/lib/types';
 import {
   Table,
@@ -15,8 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -29,18 +27,52 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { ref, set, get, child, remove, onValue } from "firebase/database";
 
 
 export default function TeacherDashboardPage() {
-    const [quizzes, setQuizzes] = useState<Quiz[]>(initialQuizzes);
-    const [students, setStudents] = useState<User[]>(initialUsers.filter(u => u.role === 'student'));
+    const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+    const [students, setStudents] = useState<User[]>([]);
     const [isAddStudentDialogOpen, setIsAddStudentDialogOpen] = useState(false);
     const [isEditStudentDialogOpen, setIsEditStudentDialogOpen] = useState(false);
     const [isDeleteStudentDialogOpen, setIsDeleteStudentDialogOpen] = useState(false);
     const [currentStudent, setCurrentStudent] = useState<User | null>(null);
     const [newStudent, setNewStudent] = useState<{name: string, email: string, password: string}>({name: '', email: '', password: ''});
     const { toast } = useToast();
+
+    useEffect(() => {
+        const quizzesRef = ref(db, 'quizzes');
+        const usersRef = ref(db, 'users');
+
+        const unsubscribeQuizzes = onValue(quizzesRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const quizzesData = snapshot.val();
+                const quizzesList: Quiz[] = Object.keys(quizzesData).map(key => ({
+                    id: key,
+                    ...quizzesData[key],
+                    questions: quizzesData[key].questions || []
+                }));
+                setQuizzes(quizzesList);
+            }
+        });
+
+        const unsubscribeUsers = onValue(usersRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const usersData = snapshot.val();
+                const usersList: User[] = Object.keys(usersData).map(key => ({
+                    id: key,
+                    ...usersData[key]
+                }));
+                setStudents(usersList.filter(u => u.role === 'student'));
+            }
+        });
+
+        return () => {
+            unsubscribeQuizzes();
+            unsubscribeUsers();
+        };
+    }, []);
 
     const handleOpenAddDialog = () => {
         setNewStudent({ name: '', email: '', password: ''});
@@ -56,30 +88,18 @@ export default function TeacherDashboardPage() {
             })
             return;
         }
-        
-        if (initialUsers.some(user => user.email === newStudent.email)) {
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'A user with this email already exists.'
-            })
-            return;
-        }
 
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, newStudent.email, newStudent.password);
-            const studentToAdd: User = {
-                id: userCredential.user.uid,
+            const studentToAdd: Omit<User, 'id'> = {
                 name: newStudent.name,
                 email: newStudent.email,
                 role: 'student',
             }
 
-            // This is a temporary solution for the demo to persist the new user.
-            // In a real app, you would save this to a database.
-            initialUsers.push(studentToAdd);
-
-            setStudents([...students, studentToAdd]);
+            await set(ref(db, 'users/' + userCredential.user.uid), studentToAdd);
+            
+            setStudents([...students, { ...studentToAdd, id: userCredential.user.uid }]);
             setIsAddStudentDialogOpen(false);
             toast({
                 title: 'Success',
@@ -107,14 +127,29 @@ export default function TeacherDashboardPage() {
         setIsEditStudentDialogOpen(true);
     };
 
-    const handleUpdateStudent = () => {
+    const handleUpdateStudent = async () => {
         if(!currentStudent) return;
-        setStudents(students.map(s => s.id === currentStudent.id ? currentStudent : s));
-        setIsEditStudentDialogOpen(false);
-        toast({
-            title: 'Success',
-            description: 'Student updated successfully.'
-        })
+        
+        try {
+            const userToUpdate = {
+                name: currentStudent.name,
+                email: currentStudent.email,
+                role: currentStudent.role,
+            };
+            await set(ref(db, 'users/' + currentStudent.id), userToUpdate);
+            setStudents(students.map(s => s.id === currentStudent.id ? currentStudent : s));
+            setIsEditStudentDialogOpen(false);
+            toast({
+                title: 'Success',
+                description: 'Student updated successfully.'
+            })
+        } catch (error) {
+             toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to update student.'
+            })
+        }
     }
 
     const handleOpenDeleteDialog = (student: User) => {
@@ -122,14 +157,23 @@ export default function TeacherDashboardPage() {
         setIsDeleteStudentDialogOpen(true);
     };
 
-    const handleDeleteStudent = () => {
+    const handleDeleteStudent = async () => {
         if(!currentStudent) return;
-        setStudents(students.filter(s => s.id !== currentStudent.id));
-        setIsDeleteStudentDialogOpen(false);
-        toast({
-            title: 'Success',
-            description: 'Student deleted successfully.'
-        })
+        try {
+             await remove(ref(db, 'users/' + currentStudent.id));
+             setStudents(students.filter(s => s.id !== currentStudent.id));
+             setIsDeleteStudentDialogOpen(false);
+             toast({
+                title: 'Success',
+                description: 'Student deleted successfully.'
+             })
+        } catch (e) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to delete student.'
+            })
+        }
     }
 
   return (
@@ -263,7 +307,7 @@ export default function TeacherDashboardPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="edit-email">Email</Label>
-                            <Input id="edit-email" type="email" value={currentStudent.email} onChange={(e) => setCurrentStudent({...currentStudent, email: e.target.value})}/>
+                            <Input id="edit-email" type="email" value={currentStudent.email} readOnly disabled/>
                         </div>
                     </div>
                 )}
