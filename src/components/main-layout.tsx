@@ -80,8 +80,16 @@ export default function MainLayout({
   }
 
   const handleLogout = async () => {
-    await signOut(auth);
-    router.push('/');
+    try {
+      await signOut(auth);
+      router.push('/');
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Logout Failed",
+        description: "An error occurred while logging out.",
+      });
+    }
   }
 
   const getMenuItems = () => {
@@ -116,7 +124,7 @@ export default function MainLayout({
                     </SidebarMenuItem>
                      <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive("/teacher/students")} tooltip="Students">
-                            <Link href="/teacher/students"><Users /><span>Students</span></Link>
+                            <Link href="/teacher/dashboard"><Users /><span>Students</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </>
@@ -166,7 +174,7 @@ export default function MainLayout({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage data-ai-hint="profile picture" src={`https://i.pravatar.cc/40?u=${userType}`} />
+                  <AvatarImage data-ai-hint="profile picture" src={'https://i.pravatar.cc/40?u=${userType}'} />
                   <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <span className="font-medium text-sm">{user.name}</span>
@@ -181,7 +189,7 @@ export default function MainLayout({
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                     <Avatar>
-                        <AvatarImage data-ai-hint="profile picture" src={`https://i.pravatar.cc/40?u=${userType}`} />
+                        <AvatarImage data-ai-hint="profile picture" src={'https://i.pravatar.cc/40?u=${userType}'} />
                         <AvatarFallback>
                             <UserCircle />
                         </AvatarFallback>
