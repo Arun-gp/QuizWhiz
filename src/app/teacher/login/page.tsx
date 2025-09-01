@@ -19,20 +19,12 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 export default function TeacherLoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("teacher@gmail.com");
+  const [password, setPassword] = useState("123456");
   const router = useRouter();
   const { toast } = useToast();
 
   const handleLogin = async () => {
-    if (email !== "teacher@gmail.com" || password !== "123456") {
-        toast({
-            variant: "destructive",
-            title: "Login Failed",
-            description: "Invalid teacher credentials.",
-          });
-        return;
-    }
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/teacher/dashboard");

@@ -19,21 +19,12 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("admin@gmail.com");
+  const [password, setPassword] = useState("123456");
   const router = useRouter();
   const { toast } = useToast();
 
   const handleLogin = async () => {
-    // In a real application, you should never hardcode credentials.
-    if (email !== "admin@gmail.com" || password !== "123456") {
-        toast({
-            variant: "destructive",
-            title: "Login Failed",
-            description: "Invalid admin credentials.",
-          });
-        return;
-    }
     try {
         await signInWithEmailAndPassword(auth, email, password);
         router.push("/admin/dashboard");
