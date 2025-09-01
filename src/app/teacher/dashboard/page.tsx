@@ -57,6 +57,15 @@ export default function TeacherDashboardPage() {
             return;
         }
         
+        if (students.some(student => student.email === newStudent.email) || initialUsers.some(u => u.email === newStudent.email)) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'A user with this email already exists.'
+            })
+            return;
+        }
+
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, newStudent.email, newStudent.password);
             const studentToAdd: User = {
@@ -79,10 +88,16 @@ export default function TeacherDashboardPage() {
 
         } catch (error: any) {
             console.error("Error creating user:", error);
+            let description = 'Could not create user.';
+            if (error.code === 'auth/email-already-in-use') {
+                description = 'This email address is already in use by another account.';
+            } else if (error.message) {
+                description = error.message;
+            }
              toast({
                 variant: 'destructive',
                 title: 'Error',
-                description: error.message || 'Could not create user.'
+                description
             })
         }
     };

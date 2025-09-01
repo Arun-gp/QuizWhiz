@@ -58,6 +58,15 @@ export default function AdminDashboardPage() {
             return;
         }
 
+        if (allUsers.some(user => user.email === newUser.email)) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'A user with this email already exists.'
+            })
+            return;
+        }
+
         try {
             // In a real app, this should be a secure server-side action.
             // For this demo, we'll create the user on the client-side.
@@ -84,10 +93,16 @@ export default function AdminDashboardPage() {
 
         } catch (error: any) {
             console.error("Error creating user:", error);
+            let description = 'Could not create user.';
+            if (error.code === 'auth/email-already-in-use') {
+                description = 'This email address is already in use by another account.';
+            } else if (error.message) {
+                description = error.message;
+            }
             toast({
                 variant: 'destructive',
                 title: 'Error',
-                description: error.message || 'Could not create user.'
+                description
             })
         }
     };
