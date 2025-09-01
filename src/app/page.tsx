@@ -1,7 +1,10 @@
 
+'use client';
+
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
+import TypingTitle from "@/components/typing-title";
 
 export default function Home() {
   return (
@@ -9,9 +12,7 @@ export default function Home() {
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[400px] gap-6 px-4 text-center">
           <div className="space-y-4">
-            <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl">
-              Welcome to QuizWhiz
-            </h1>
+            <TypingTitle text="Welcome to QuizWhiz" />
             <p className="text-muted-foreground md:text-xl">
               Your journey to knowledge starts here. Engage, learn, and conquer with our interactive quizzes.
             </p>
