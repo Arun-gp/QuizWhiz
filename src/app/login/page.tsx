@@ -17,17 +17,40 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { users } from "@/lib/data";
+import Link from "next/link";
 
-export default function AdminLoginPage() {
-  const [email, setEmail] = useState("admin@gmail.com");
-  const [password, setPassword] = useState("123456");
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
   const { toast } = useToast();
 
   const handleLogin = async () => {
     try {
-        await signInWithEmailAndPassword(auth, email, password);
-        router.push("/admin/dashboard");
+      await signInWithEmailAndPassword(auth, email, password);
+      
+      const user = users.find(u => u.email === email);
+
+      if (user) {
+        switch (user.role) {
+            case 'admin':
+                router.push('/admin/dashboard');
+                break;
+            case 'teacher':
+                router.push('/teacher/dashboard');
+                break;
+            case 'student':
+                router.push('/student/dashboard');
+                break;
+            default:
+                router.push('/student/dashboard'); // Default redirect for students
+        }
+      } else {
+        // If user is not in our mock data, default to student dashboard
+        router.push('/student/dashboard');
+      }
+
     } catch (error) {
       console.error("Firebase authentication error:", error);
       toast({
@@ -49,9 +72,9 @@ export default function AdminLoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Admin Login</CardTitle>
+          <CardTitle>Login</CardTitle>
           <CardDescription>
-            Enter your credentials to access the admin panel.
+            Enter your credentials to access your account.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -60,7 +83,7 @@ export default function AdminLoginPage() {
             <Input
               id="email"
               type="email"
-              placeholder="admin@gmail.com"
+              placeholder="m@example.com"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -83,6 +106,9 @@ export default function AdminLoginPage() {
           <Button className="w-full" onClick={handleLogin}>
             Login
           </Button>
+           <p className="text-xs text-center text-muted-foreground">
+            New here? <Link href="/student/signup" className="underline">Sign up</Link>
+          </p>
         </CardFooter>
       </Card>
     </div>

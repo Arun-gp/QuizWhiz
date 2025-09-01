@@ -17,13 +17,10 @@ export default function Home() {
           </div>
           <div className="grid gap-4">
             <Button asChild>
-                <Link href="/student/login">Student Login</Link>
+                <Link href="/login">Login</Link>
             </Button>
             <Button asChild variant="outline">
-                <Link href="/teacher/login">Teacher Login</Link>
-            </Button>
-            <Button asChild variant="outline">
-                <Link href="/admin/login">Admin Login</Link>
+                <Link href="/student/signup">Sign Up</Link>
             </Button>
           </div>
         </div>
