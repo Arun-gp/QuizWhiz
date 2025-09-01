@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
       <div className="flex items-center justify-center py-12">
-        <div className="mx-auto grid w-[400px] gap-6 px-4 text-center">
+        <div className="mx-auto grid w-[450px] gap-6 px-4 text-center">
           <div className="space-y-4">
             <TypingTitle text="Welcome to QuizWhiz" />
             <p className="text-muted-foreground md:text-xl pt-2">

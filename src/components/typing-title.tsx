@@ -40,7 +40,7 @@ export default function TypingTitle({ text, speed = 100 }: TypingTitleProps) {
   }, [displayedText, isDeleting, loopNum, speed, text, typingSpeed]);
 
   return (
-    <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl h-14">
+    <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl h-14 whitespace-nowrap">
       {displayedText}
       <span className="animate-ping">|</span>
     </h1>
