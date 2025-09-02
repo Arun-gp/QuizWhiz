@@ -75,16 +75,18 @@ export default function AdminDashboardPage() {
         }
 
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, newUser.email, newUser.password);
+            // We don't want to actually create a user in auth for this demo.
+            // We just add it to the DB. For a real app, you would use createUserWithEmailAndPassword
+            const userId = `demo-${Date.now()}`;
             const userToAdd: Omit<User, 'id'> = {
                 name: newUser.name,
                 email: newUser.email,
                 role: newUser.role,
             }
             
-            await set(ref(db, 'users/' + userCredential.user.uid), userToAdd);
+            await set(ref(db, 'users/' + userId), userToAdd);
 
-            setAllUsers([...allUsers, { ...userToAdd, id: userCredential.user.uid }]);
+            setAllUsers([...allUsers, { ...userToAdd, id: userId }]);
             setIsAddUserDialogOpen(false);
             toast({
                 title: 'Success',
@@ -145,8 +147,6 @@ export default function AdminDashboardPage() {
     const handleDeleteUser = async () => {
         if(!currentUser) return;
         try {
-            // Note: Deleting from Firebase auth requires server-side logic (Admin SDK)
-            // This will only remove the user from the database.
             await remove(ref(db, 'users/' + currentUser.id));
             setAllUsers(allUsers.filter(u => u.id !== currentUser.id));
             setIsDeleteUserDialogOpen(false);
@@ -164,12 +164,13 @@ export default function AdminDashboardPage() {
     }
 
 
-    const UserTable = ({ users, onEdit, onDelete }: { users: User[], onEdit: (user: User) => void, onDelete: (user: User) => void}) => (
+    const UserTable = ({ users, onEdit, onDelete, showMarks = false }: { users: User[], onEdit: (user: User) => void, onDelete: (user: User) => void, showMarks?: boolean}) => (
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
+              {showMarks && <TableHead>Marks</TableHead>}
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -178,6 +179,7 @@ export default function AdminDashboardPage() {
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
+                {showMarks && <TableCell>{user.marks ? Object.values(user.marks).join(', ') : 'N/A'}</TableCell>}
                 <TableCell className="text-right">
                   <Button variant="ghost" size="icon" onClick={() => onEdit(user)}>
                     <Edit className="h-4 w-4" />
@@ -188,6 +190,11 @@ export default function AdminDashboardPage() {
                 </TableCell>
               </TableRow>
             ))}
+             {users.length === 0 && (
+                <TableRow>
+                    <TableCell colSpan={showMarks ? 4: 3} className="text-center">No users found.</TableCell>
+                </TableRow>
+            )}
           </TableBody>
         </Table>
     )
@@ -220,13 +227,13 @@ export default function AdminDashboardPage() {
                                 <PlusCircle className="mr-2 h-4 w-4" /> Add Student
                             </Button>
                         </div>
-                       <UserTable users={students} onEdit={handleOpenEditDialog} onDelete={handleOpenDeleteDialog}/>
+                       <UserTable users={students} onEdit={handleOpenEditDialog} onDelete={handleOpenDeleteDialog} showMarks={true}/>
                     </div>
                 </TabsContent>
             </Tabs>
         </div>
 
-        {/* Add/Edit/Delete Dialogs */}
+        {/* Add Dialog */}
         <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
             <DialogContent>
                 <DialogHeader>
@@ -253,6 +260,7 @@ export default function AdminDashboardPage() {
             </DialogContent>
         </Dialog>
 
+        {/* Edit Dialog */}
         <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
             <DialogContent>
                 <DialogHeader>
@@ -277,12 +285,13 @@ export default function AdminDashboardPage() {
             </DialogContent>
         </Dialog>
 
+        {/* Delete Dialog */}
         <Dialog open={isDeleteUserDialogOpen} onOpenChange={setIsDeleteUserDialogOpen}>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Delete User</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete {currentUser?.name}? This action cannot be undone and will only remove the user from the database, not from Firebase Authentication.
+                        Are you sure you want to delete {currentUser?.name}? This action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
@@ -295,3 +304,5 @@ export default function AdminDashboardPage() {
     </MainLayout>
   );
 }
+
+    

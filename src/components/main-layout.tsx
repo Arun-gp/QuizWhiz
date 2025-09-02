@@ -82,7 +82,7 @@ export default function MainLayout({
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.push('/');
+      router.push('/login');
     } catch (error) {
       toast({
         variant: "destructive",
@@ -104,7 +104,7 @@ export default function MainLayout({
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive(user.accounts || '')} tooltip="Accounts">
-                            <Link href={user.accounts || ''}><UserCog /><span>Accounts</span></Link>
+                            <Link href={user.accounts || ''}><Users /><span>Accounts</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </>
@@ -242,3 +242,5 @@ export default function MainLayout({
     </SidebarProvider>
   );
 }
+
+    
