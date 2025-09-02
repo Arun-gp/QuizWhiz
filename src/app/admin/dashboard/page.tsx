@@ -75,9 +75,8 @@ export default function AdminDashboardPage() {
         }
 
         try {
-            // We don't want to actually create a user in auth for this demo.
-            // We just add it to the DB. For a real app, you would use createUserWithEmailAndPassword
-            const userId = `demo-${Date.now()}`;
+            const userCredential = await createUserWithEmailAndPassword(auth, newUser.email, newUser.password);
+            const userId = userCredential.user.uid;
             const userToAdd: Omit<User, 'id'> = {
                 name: newUser.name,
                 email: newUser.email,
@@ -304,5 +303,3 @@ export default function AdminDashboardPage() {
     </MainLayout>
   );
 }
-
-    

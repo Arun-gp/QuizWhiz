@@ -47,11 +47,32 @@ export default function LoginPage() {
                 router.push('/student/dashboard');
                 break;
             default:
-                router.push('/student/dashboard'); // Default redirect for students
+                // This case should ideally not be reached if roles are always set.
+                toast({
+                    variant: "destructive",
+                    title: "Login Failed",
+                    description: "User role is not defined.",
+                });
+                router.push('/login'); 
+                break;
         }
       } else {
-        // If user is not in our db, default to student dashboard
-        router.push('/student/dashboard');
+        // This case might happen if a user is in Auth but not in the DB.
+        // Or if the demo users are not yet in the DB.
+        // For this app, we'll treat them as a student by default if not in DB.
+        if (email === 'student@gmail.com') {
+             router.push('/student/dashboard');
+        } else if (email === 'teacher@gmail.com') {
+             router.push('/teacher/dashboard');
+        } else if (email === 'admin@gmail.com') {
+             router.push('/admin/dashboard');
+        } else {
+             toast({
+                variant: "destructive",
+                title: "Login Failed",
+                description: "User data not found in the database.",
+             });
+        }
       }
 
     } catch (error) {
