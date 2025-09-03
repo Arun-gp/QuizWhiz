@@ -38,11 +38,24 @@ export default function NewQuizPage() {
         }
 
         const newQuizRef = push(ref(db, 'quizzes'));
+        const newQuestionId = `q${Date.now()}`;
         const newQuiz: Omit<Quiz, 'id'> = {
             title,
             description,
             duration: parseInt(duration, 10),
-            questions: [],
+            questions: [
+                {
+                    id: newQuestionId,
+                    text: 'Your first question',
+                    options: [
+                        { id: `o1-${Date.now()}`, text: '' },
+                        { id: `o2-${Date.now()}`, text: '' },
+                        { id: `o3-${Date.now()}`, text: '' },
+                        { id: `o4-${Date.now()}`, text: '' },
+                    ],
+                    correctAnswerId: '',
+                },
+            ],
             authorId: currentUser.uid
         };
 
