@@ -26,9 +26,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { ref, set, get, child, remove, onValue } from "firebase/database";
+import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 export default function TeacherDashboardPage() {
@@ -40,39 +42,51 @@ export default function TeacherDashboardPage() {
     const [currentStudent, setCurrentStudent] = useState<User | null>(null);
     const [newStudent, setNewStudent] = useState<{name: string, email: string, password: string}>({name: '', email: '', password: ''});
     const { toast } = useToast();
+    const router = useRouter();
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const quizzesRef = ref(db, 'quizzes');
-        const usersRef = ref(db, 'users');
+        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const quizzesRef = ref(db, 'quizzes');
+                const usersRef = ref(db, 'users');
 
-        const unsubscribeQuizzes = onValue(quizzesRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const quizzesData = snapshot.val();
-                const quizzesList: Quiz[] = Object.keys(quizzesData).map(key => ({
-                    id: key,
-                    ...quizzesData[key],
-                    questions: quizzesData[key].questions || []
-                }));
-                setQuizzes(quizzesList);
+                const unsubscribeQuizzes = onValue(quizzesRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        const quizzesData = snapshot.val();
+                        const quizzesList: Quiz[] = Object.keys(quizzesData).map(key => ({
+                            id: key,
+                            ...quizzesData[key],
+                            questions: quizzesData[key].questions || []
+                        }));
+                        setQuizzes(quizzesList);
+                    }
+                });
+
+                const unsubscribeUsers = onValue(usersRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        const usersData = snapshot.val();
+                        const usersList: User[] = Object.keys(usersData).map(key => ({
+                            id: key,
+                            ...usersData[key]
+                        }));
+                        setStudents(usersList.filter(u => u.role === 'student'));
+                    }
+                });
+                
+                setLoading(false);
+
+                return () => {
+                    unsubscribeQuizzes();
+                    unsubscribeUsers();
+                };
+            } else {
+                router.push('/login');
             }
         });
 
-        const unsubscribeUsers = onValue(usersRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const usersData = snapshot.val();
-                const usersList: User[] = Object.keys(usersData).map(key => ({
-                    id: key,
-                    ...usersData[key]
-                }));
-                setStudents(usersList.filter(u => u.role === 'student'));
-            }
-        });
-
-        return () => {
-            unsubscribeQuizzes();
-            unsubscribeUsers();
-        };
-    }, []);
+        return () => unsubscribeAuth();
+    }, [router]);
 
     const handleOpenAddDialog = () => {
         setNewStudent({ name: '', email: '', password: ''});
@@ -175,6 +189,18 @@ export default function TeacherDashboardPage() {
             })
         }
     }
+
+  if (loading) {
+    return (
+        <MainLayout userType="teacher">
+            <div className="space-y-4">
+                <Skeleton className="h-10 w-3/4" />
+                <Skeleton className="h-40 w-full" />
+                 <Skeleton className="h-40 w-full" />
+            </div>
+        </MainLayout>
+    );
+  }
 
   return (
     <MainLayout userType="teacher">

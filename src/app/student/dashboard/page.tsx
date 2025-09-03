@@ -9,10 +9,14 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import type { User } from '@/lib/types';
+import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 export default function StudentDashboardPage() {
   const [student, setStudent] = useState<User | null>(null);
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -22,14 +26,27 @@ export default function StudentDashboardPage() {
                 if(snapshot.exists()){
                     setStudent({id: user.uid, ...snapshot.val()});
                 }
+                setLoading(false);
             })
         } else {
-            setStudent(null);
+            router.push('/login');
         }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [router]);
+  
+  if (loading) {
+    return (
+        <MainLayout userType="student">
+            <div className="space-y-4">
+                <Skeleton className="h-10 w-3/4" />
+                <Skeleton className="h-40 w-full" />
+                 <Skeleton className="h-40 w-full" />
+            </div>
+        </MainLayout>
+    );
+  }
 
   return (
     <MainLayout userType="student">

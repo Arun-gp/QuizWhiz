@@ -29,6 +29,9 @@ import { useToast } from "@/hooks/use-toast";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { ref, set, get, child, remove } from "firebase/database";
+import { onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminDashboardPage() {
     const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -38,22 +41,33 @@ export default function AdminDashboardPage() {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [newUser, setNewUser] = useState<{name: string, email: string, password: string, role: 'teacher' | 'student'}>({name: '', email: '', password: '', role: 'teacher'});
     const { toast } = useToast();
+    const router = useRouter();
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchUsers = async () => {
-            const dbRef = ref(db);
-            const snapshot = await get(child(dbRef, 'users'));
-            if (snapshot.exists()) {
-                const usersData = snapshot.val();
-                const usersList = Object.keys(usersData).map(key => ({
-                    id: key,
-                    ...usersData[key]
-                }));
-                setAllUsers(usersList);
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const fetchUsers = async () => {
+                    const dbRef = ref(db);
+                    const snapshot = await get(child(dbRef, 'users'));
+                    if (snapshot.exists()) {
+                        const usersData = snapshot.val();
+                        const usersList = Object.keys(usersData).map(key => ({
+                            id: key,
+                            ...usersData[key]
+                        }));
+                        setAllUsers(usersList);
+                    }
+                    setLoading(false);
+                };
+                fetchUsers();
+            } else {
+                router.push('/login');
             }
-        };
-        fetchUsers();
-    }, []);
+        });
+
+        return () => unsubscribe();
+    }, [router]);
 
     const teachers = allUsers.filter(u => u.role === 'teacher');
     const students = allUsers.filter(u => u.role === 'student');
@@ -197,6 +211,18 @@ export default function AdminDashboardPage() {
           </TableBody>
         </Table>
     )
+
+    if (loading) {
+        return (
+            <MainLayout userType="admin">
+                <div className="space-y-4">
+                    <Skeleton className="h-10 w-3/4" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-40 w-full" />
+                </div>
+            </MainLayout>
+        );
+    }
 
   return (
     <MainLayout userType="admin">
