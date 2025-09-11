@@ -8,13 +8,14 @@ import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
-import type { User } from '@/lib/types';
+import type { User, Quiz } from '@/lib/types';
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
 export default function StudentDashboardPage() {
   const [student, setStudent] = useState<User | null>(null);
+  const [quizzes, setQuizzes] = useState<Record<string, Quiz>>({});
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +27,23 @@ export default function StudentDashboardPage() {
                 if(snapshot.exists()){
                     setStudent({id: user.uid, ...snapshot.val()});
                 }
-                setLoading(false);
+                
+                const quizzesRef = ref(db, 'quizzes');
+                onValue(quizzesRef, (quizSnapshot) => {
+                    if (quizSnapshot.exists()) {
+                         const quizzesData = quizSnapshot.val();
+                         const quizzesMap: Record<string, Quiz> = {};
+                         Object.keys(quizzesData).forEach(key => {
+                             quizzesMap[key] = {
+                                id: key,
+                                ...quizzesData[key],
+                                questions: quizzesData[key].questions || []
+                            };
+                         });
+                        setQuizzes(quizzesMap);
+                    }
+                    setLoading(false);
+                });
             })
         } else {
             router.push('/login');
@@ -65,12 +82,17 @@ export default function StudentDashboardPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {student?.marks && Object.entries(student.marks).map(([quizId, score]) => (
-                                <TableRow key={quizId}>
-                                    <TableCell>Quiz {quizId}</TableCell>
-                                    <TableCell className="text-right">{score}%</TableCell>
-                                </TableRow>
-                            ))}
+                            {student?.marks && Object.entries(student.marks).map(([quizId, score]) => {
+                                const quiz = quizzes[quizId];
+                                if (!quiz) return null;
+                                const totalQuestions = quiz.questions.length;
+                                return (
+                                    <TableRow key={quizId}>
+                                        <TableCell>{quiz.title}</TableCell>
+                                        <TableCell className="text-right">{score} / {totalQuestions}</TableCell>
+                                    </TableRow>
+                                )
+                            })}
                              {!student?.marks && (
                                 <TableRow>
                                     <TableCell colSpan={2} className="text-center">No marks yet.</TableCell>

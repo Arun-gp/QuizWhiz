@@ -5,7 +5,7 @@ export interface User {
   name: string;
   email: string;
   role: 'student' | 'teacher' | 'admin';
-  marks?: Record<string, number>;
+  marks?: Record<string, number>; // Stores number of correct answers
 }
 
 export interface Option {
@@ -40,4 +40,3 @@ export interface ProgressData {
   quiz: string;
   score: number;
 }
-

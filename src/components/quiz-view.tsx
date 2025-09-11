@@ -45,6 +45,7 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
   const [timeLeft, setTimeLeft] = useState(quiz.duration * 60);
   const [isFinished, setIsFinished] = useState(false);
   const [score, setScore] = useState(0);
+  const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   const [aiFeedback, setAIFeedback] = useState("");
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [resultDetails, setResultDetails] = useState<ResultDetails[]>([]);
@@ -59,7 +60,7 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
     if (isFinished) return;
 
     setIsFinished(true);
-    let correctAnswersCount = 0;
+    let correctCount = 0;
     const correctQuestions: string[] = [];
     const incorrectQuestions: string[] = [];
     const details: ResultDetails[] = [];
@@ -71,7 +72,7 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
 
       const isCorrect = selectedOptionId === q.correctAnswerId;
       if (isCorrect) {
-        correctAnswersCount++;
+        correctCount++;
         correctQuestions.push(q.text);
       } else {
         incorrectQuestions.push(q.text);
@@ -86,15 +87,16 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
     });
 
     setResultDetails(details);
+    setCorrectAnswersCount(correctCount);
 
     const calculatedScore = Math.round(
-      (correctAnswersCount / quiz.questions.length) * 100
+      (correctCount / quiz.questions.length) * 100
     );
     setScore(calculatedScore);
 
     const user = auth.currentUser;
     if (user) {
-        await saveQuizResult(user.uid, quiz.id, calculatedScore);
+        await saveQuizResult(user.uid, quiz.id, correctCount);
     }
 
     setIsGeneratingFeedback(true);
@@ -246,7 +248,7 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
           <DialogHeader>
             <DialogTitle>Quiz Results: {score}%</DialogTitle>
             <DialogDescription>
-              Here's how you did on the "{quiz.title}" quiz.
+              You got {correctAnswersCount} out of {quiz.questions.length} questions correct.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
