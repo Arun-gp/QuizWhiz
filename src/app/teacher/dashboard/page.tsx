@@ -24,19 +24,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function TeacherDashboardPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [userName, setUserName] = useState<string | null>(null);
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
             if (user) {
-                const userRef = ref(db, `users/${user.uid}`);
-                const unsubscribeUser = onValue(userRef, (snapshot) => {
-                    if (snapshot.exists()) {
-                        setUserName(snapshot.val().name);
-                    }
-                    setLoading(false);
-                });
-                return () => unsubscribeUser();
+                setLoading(false);
             } else {
                 router.push('/login');
             }
@@ -61,7 +53,7 @@ export default function TeacherDashboardPage() {
       <div className="space-y-8">
         <div className="flex items-center justify-between">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Welcome, {userName || 'Teacher'}!</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Welcome, Teacher</h1>
                 <p className="text-muted-foreground">
                     Manage your quizzes and students using the sidebar.
                 </p>
