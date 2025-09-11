@@ -23,10 +23,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Timer, Sparkles, Loader2 } from "lucide-react";
-import type { Quiz, Question } from "@/lib/types";
-import { getAIFeedback, saveQuizResult } from "@/app/quiz/actions";
-import { useToast } from "@/hooks/use-toast";
+import { CheckCircle, XCircle, Timer } from "lucide-react";
+import type { Quiz } from "@/lib/types";
+import { saveQuizResult } from "@/app/quiz/actions";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -46,10 +45,7 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
   const [isFinished, setIsFinished] = useState(false);
   const [score, setScore] = useState(0);
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
-  const [aiFeedback, setAIFeedback] = useState("");
-  const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [resultDetails, setResultDetails] = useState<ResultDetails[]>([]);
-  const { toast } = useToast();
   const [answerStatus, setAnswerStatus] = useState<Record<string, 'correct' | 'incorrect'>>({});
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
 
@@ -61,8 +57,6 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
 
     setIsFinished(true);
     let correctCount = 0;
-    const correctQuestions: string[] = [];
-    const incorrectQuestions: string[] = [];
     const details: ResultDetails[] = [];
 
     quiz.questions.forEach((q) => {
@@ -73,9 +67,6 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
       const isCorrect = selectedOptionId === q.correctAnswerId;
       if (isCorrect) {
         correctCount++;
-        correctQuestions.push(q.text);
-      } else {
-        incorrectQuestions.push(q.text);
       }
       
       details.push({
@@ -98,30 +89,7 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
     if (user) {
         await saveQuizResult(user.uid, quiz.id, correctCount);
     }
-
-    setIsGeneratingFeedback(true);
-    getAIFeedback({
-      studentName: "Student",
-      quizName: quiz.title,
-      score: calculatedScore,
-      correctAnswers: correctQuestions,
-      incorrectAnswers: incorrectQuestions,
-      feedbackRequest: "General feedback",
-    })
-      .then((result) => {
-        if (result.success) {
-          setAIFeedback(result.feedback!);
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: result.error,
-          });
-          setAIFeedback("Could not generate feedback at this time.");
-        }
-      })
-      .finally(() => setIsGeneratingFeedback(false));
-  }, [answers, quiz, isFinished, toast]);
+  }, [answers, quiz, isFinished]);
 
   useEffect(() => {
     if (isFinished) return;
@@ -274,23 +242,6 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
                 ))}
                </div>
             </ScrollArea>
-             <div className="p-3 border rounded-lg space-y-2">
-                <h3 className="font-semibold flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-accent" />
-                    Personalized Feedback
-                </h3>
-                {isGeneratingFeedback ? (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Generating feedback...</span>
-                </div>
-                ) : (
-                <div
-                    className="prose prose-sm dark:prose-invert max-w-none"
-                    dangerouslySetInnerHTML={{ __html: aiFeedback.replace(/\n/g, '<br />') }}
-                />
-                )}
-            </div>
           </div>
           <DialogFooter>
             <Button asChild className="w-full">
