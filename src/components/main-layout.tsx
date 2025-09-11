@@ -56,7 +56,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { signOut } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { ref, onValue, update } from "firebase/database";
 import { useRouter } from "next/navigation";
@@ -103,7 +103,7 @@ export default function MainLayout({
   
   const userConfig = {
       student: { name: "Student User", home: "/student/dashboard", quizzes: "/student/dashboard" },
-      teacher: { name: "Teacher Admin", home: "/teacher/dashboard", quizzes: "/teacher/quizzes", students: "/teacher/students#students" },
+      teacher: { name: "Teacher Admin", home: "/teacher/dashboard", quizzes: "/teacher/quizzes", students: "/teacher/students" },
       admin: { name: "Admin", home: "/admin/dashboard", accounts: "/admin/dashboard" }
   }
 
