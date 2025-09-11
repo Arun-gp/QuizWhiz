@@ -199,9 +199,11 @@ export default function MainLayout({
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
                     <UserCircle className="mr-2 h-4 w-4" />
                     Profile
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleChangePicture}>
                     <ImageIcon className="mr-2 h-4 w-4" />
@@ -242,5 +244,3 @@ export default function MainLayout({
     </SidebarProvider>
   );
 }
-
-    
