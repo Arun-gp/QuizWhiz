@@ -55,7 +55,7 @@ const generateAvatarFlow = ai.defineFlow(
         {text: `Generate a new avatar based on this image, in the style of: ${prompt}. The output must be a square avatar.`},
       ],
       config: {
-        responseModalities: ['IMAGE'],
+        responseModalities: ['IMAGE', 'TEXT'],
       },
     });
 
