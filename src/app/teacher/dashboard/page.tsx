@@ -22,31 +22,21 @@ import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TeacherDashboardPage() {
-    const [quizzes, setQuizzes] = useState<Quiz[]>([]);
     const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [userName, setUserName] = useState<string | null>(null);
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
             if (user) {
-                const quizzesRef = ref(db, 'quizzes');
-
-                const unsubscribeQuizzes = onValue(quizzesRef, (snapshot) => {
+                const userRef = ref(db, `users/${user.uid}`);
+                const unsubscribeUser = onValue(userRef, (snapshot) => {
                     if (snapshot.exists()) {
-                        const quizzesData = snapshot.val();
-                        const quizzesList: Quiz[] = Object.keys(quizzesData).map(key => ({
-                            id: key,
-                            ...quizzesData[key],
-                            questions: quizzesData[key].questions || []
-                        }));
-                        setQuizzes(quizzesList);
+                        setUserName(snapshot.val().name);
                     }
                     setLoading(false);
                 });
-
-                return () => {
-                    unsubscribeQuizzes();
-                };
+                return () => unsubscribeUser();
             } else {
                 router.push('/login');
             }
@@ -60,7 +50,7 @@ export default function TeacherDashboardPage() {
         <MainLayout userType="teacher">
             <div className="space-y-4">
                 <Skeleton className="h-10 w-3/4" />
-                <Skeleton className="h-40 w-full" />
+                <Skeleton className="h-6 w-1/2" />
             </div>
         </MainLayout>
     );
@@ -71,60 +61,12 @@ export default function TeacherDashboardPage() {
       <div className="space-y-8">
         <div className="flex items-center justify-between">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Welcome, Teacher!</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Welcome, {userName || 'Teacher'}!</h1>
                 <p className="text-muted-foreground">
-                    Manage your quizzes and students here.
+                    Manage your quizzes and students using the sidebar.
                 </p>
             </div>
         </div>
-
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-                <div>
-                    <CardTitle>Your Quizzes</CardTitle>
-                    <CardDescription>A list of all the quizzes you have created.</CardDescription>
-                </div>
-                <Button asChild>
-                    <Link href="/teacher/quizzes/new">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Create Quiz
-                    </Link>
-                </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Questions</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {quizzes.map((quiz) => (
-                  <TableRow key={quiz.id}>
-                    <TableCell className="font-medium">{quiz.title}</TableCell>
-                    <TableCell>{quiz.questions.length}</TableCell>
-                    <TableCell>{quiz.duration} min</TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm" asChild>
-                         <Link href={`/teacher/quizzes/${quiz.id}`}>Edit</Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                 {quizzes.length === 0 && (
-                    <TableRow>
-                        <TableCell colSpan={4} className="text-center">No quizzes found.</TableCell>
-                    </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
       </div>
     </MainLayout>
   );
