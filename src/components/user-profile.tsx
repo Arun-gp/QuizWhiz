@@ -96,7 +96,11 @@ export default function UserProfile() {
             }
         } catch (error: any) {
             console.error("Password update error:", error);
-            toast({ variant: "destructive", title: "Error", description: "Failed to update password. You may need to log out and log back in." });
+            let description = "Failed to update password. Please try again.";
+            if (error.code === 'auth/requires-recent-login') {
+                description = "This action is sensitive and requires recent authentication. Please log out and log back in to change your password.";
+            }
+            toast({ variant: "destructive", title: "Error", description });
         }
     }
 
