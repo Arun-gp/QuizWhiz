@@ -203,7 +203,6 @@ export default function TeacherStudentsPage() {
                         <TableRow>
                             <TableHead>Name</TableHead>
                             <TableHead>Email</TableHead>
-                            <TableHead>Average Mark</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -212,7 +211,6 @@ export default function TeacherStudentsPage() {
                             <TableRow key={student.id}>
                                 <TableCell>{student.name}</TableCell>
                                 <TableCell>{student.email}</TableCell>
-                                <TableCell>{student.marks ? (Object.values(student.marks).reduce((a, b) => a + b, 0) / Object.values(student.marks).length).toFixed(2) : 'N/A'}%</TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(student)}><Edit className="h-4 w-4" /></Button>
                                     <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleOpenDeleteDialog(student)}><Trash2 className="h-4 w-4" /></Button>
@@ -221,7 +219,7 @@ export default function TeacherStudentsPage() {
                         ))}
                          {students.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center">No students found.</TableCell>
+                                <TableCell colSpan={3} className="text-center">No students found.</TableCell>
                             </TableRow>
                         )}
                     </TableBody>
