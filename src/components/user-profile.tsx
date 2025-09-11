@@ -24,8 +24,6 @@ export default function UserProfile() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -69,39 +67,10 @@ export default function UserProfile() {
   const handleSaveChanges = async () => {
     if (!user) return;
 
-    // Update name
     if (name !== user.name) {
         const userRef = ref(db, `users/${user.id}`);
         await update(userRef, { name: name });
         toast({ title: "Success", description: "Your name has been updated." });
-    }
-
-    // Update password
-    if (password) {
-        if (password !== confirmPassword) {
-            toast({ variant: "destructive", title: "Error", description: "Passwords do not match." });
-            return;
-        }
-        if (password.length < 6) {
-            toast({ variant: "destructive", title: "Error", description: "Password must be at least 6 characters long." });
-            return;
-        }
-        try {
-            const currentUser = auth.currentUser;
-            if (currentUser) {
-                await updatePassword(currentUser, password);
-                toast({ title: "Success", description: "Your password has been changed." });
-                setPassword('');
-                setConfirmPassword('');
-            }
-        } catch (error: any) {
-            console.error("Password update error:", error);
-            let description = "Failed to update password. Please try again.";
-            if (error.code === 'auth/requires-recent-login') {
-                description = "This action is sensitive and requires recent authentication. Please log out and log back in to change your password.";
-            }
-            toast({ variant: "destructive", title: "Error", description });
-        }
     }
 
     setIsEditing(false);
@@ -109,8 +78,6 @@ export default function UserProfile() {
 
   const handleCancel = () => {
     if(user) setName(user.name);
-    setPassword('');
-    setConfirmPassword('');
     setIsEditing(false);
   }
 
@@ -169,14 +136,6 @@ export default function UserProfile() {
                     <div className="space-y-2">
                         <Label htmlFor="name">Name</Label>
                         <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="password">New Password</Label>
-                        <Input id="password" type="password" placeholder="Leave blank to keep current password" value={password} onChange={(e) => setPassword(e.target.value)}/>
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                        <Input id="confirmPassword" type="password" placeholder="Confirm your new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}/>
                     </div>
                 </CardContent>
                 <CardFooter className="gap-2 justify-end">
