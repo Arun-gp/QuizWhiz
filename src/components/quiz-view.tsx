@@ -49,6 +49,8 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [resultDetails, setResultDetails] = useState<ResultDetails[]>([]);
   const { toast } = useToast();
+  const [answerStatus, setAnswerStatus] = useState<Record<string, 'correct' | 'incorrect'>>({});
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
@@ -132,12 +134,18 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
   }, [timeLeft, isFinished, handleFinish]);
 
   const handleAnswerChange = (questionId: string, optionId: string) => {
+    if (answers[questionId]) return;
+
+    setSelectedOptionId(optionId);
+    const isCorrect = optionId === currentQuestion.correctAnswerId;
     setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+    setAnswerStatus((prev) => ({...prev, [optionId]: isCorrect ? 'correct' : 'incorrect'}));
   };
 
   const handleNext = () => {
     if (currentQuestionIndex < quiz.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedOptionId(null);
     } else {
       handleFinish();
     }
@@ -150,6 +158,26 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
       .toString()
       .padStart(2, "0")}`;
   };
+
+    const getOptionClass = (optionId: string) => {
+        if (!selectedOptionId) return "";
+
+        const status = answerStatus[optionId];
+        const isSelected = selectedOptionId === optionId;
+
+        if (isSelected && status === 'correct') {
+            return "bg-green-100 border-green-500 text-green-800 dark:bg-green-900/50 dark:text-green-300";
+        }
+        if (isSelected && status === 'incorrect') {
+            return "bg-red-100 border-red-500 text-red-800 dark:bg-red-900/50 dark:text-red-300";
+        }
+        if (selectedOptionId && optionId === currentQuestion.correctAnswerId) {
+            return "bg-green-100 border-green-500 text-green-800 dark:bg-green-900/50 dark:text-green-300";
+        }
+
+        return "";
+    };
+
 
   return (
     <>
@@ -176,17 +204,25 @@ export default function QuizView({ quiz }: { quiz: Quiz }) {
                 handleAnswerChange(currentQuestion.id, value)
               }
               className="space-y-2"
+              disabled={!!answers[currentQuestion.id]}
             >
               {currentQuestion.options.map((option) => (
                 <Label
                   key={option.id}
                   htmlFor={option.id}
-                  className="flex items-center space-x-3 p-3 rounded-md border border-input cursor-pointer hover:bg-accent has-[[data-state=checked]]:bg-primary has-[[data-state=checked]]:text-primary-foreground has-[[data-state=checked]]:border-primary"
+                  className={cn(
+                    "flex items-center space-x-3 p-3 rounded-md border border-input cursor-pointer hover:bg-accent",
+                    getOptionClass(option.id)
+                  )}
                 >
                   <RadioGroupItem value={option.id} id={option.id} />
                   <span className="text-base font-normal">
                     {option.text}
                   </span>
+                   {selectedOptionId && option.id === selectedOptionId && answerStatus[option.id] === 'correct' && <CheckCircle className="h-5 w-5 text-green-600 ml-auto" />}
+                   {selectedOptionId && option.id === selectedOptionId && answerStatus[option.id] === 'incorrect' && <XCircle className="h-5 w-5 text-red-600 ml-auto" />}
+                   {selectedOptionId && answerStatus[selectedOptionId] === 'incorrect' && option.id === currentQuestion.correctAnswerId && <CheckCircle className="h-5 w-5 text-green-600 ml-auto" />}
+
                 </Label>
               ))}
             </RadioGroup>
