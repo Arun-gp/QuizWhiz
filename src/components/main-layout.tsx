@@ -16,7 +16,8 @@ import {
   LogOut,
   UserCog,
   Sparkles,
-  Loader2
+  Loader2,
+  BadgePercent
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
@@ -96,10 +97,10 @@ export default function MainLayout({
     return () => unsubscribe();
   }, []);
 
-  const isActive = (path: string) => pathname.startsWith(path);
+  const isActive = (path: string) => pathname === path || (path !== '/' && pathname.startsWith(path));
   
   const userConfig = {
-      student: { name: "Student User", home: "/student/dashboard", quizzes: "/student/dashboard" },
+      student: { name: "Student User", home: "/student/dashboard", quizzes: "/student/dashboard", myMarks: "/student/my-marks" },
       teacher: { name: "Teacher Admin", home: "/teacher/dashboard", quizzes: "/teacher/quizzes", students: "/teacher/students" },
       admin: { name: "Admin", home: "/admin/dashboard", accounts: "/admin/dashboard" }
   }
@@ -164,11 +165,6 @@ export default function MainLayout({
                             <Link href={user.home}><LayoutDashboard /><span>Dashboard</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive(user.accounts || '')} tooltip="Accounts">
-                            <Link href={user.accounts || ''}><Users /><span>Accounts</span></Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
                 </>
             )
         case "teacher":
@@ -200,8 +196,8 @@ export default function MainLayout({
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive("/quiz")} tooltip="Quizzes">
-                            <Link href={user.quizzes}><FileText /><span>Quizzes</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive(user.myMarks)} tooltip="My Marks">
+                            <Link href={user.myMarks}><BadgePercent /><span>My Marks</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
