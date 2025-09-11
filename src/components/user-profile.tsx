@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { ref, onValue, update } from "firebase/database";
 import { useRouter } from "next/navigation";
@@ -24,6 +24,8 @@ export default function UserProfile() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -67,17 +69,58 @@ export default function UserProfile() {
   const handleSaveChanges = async () => {
     if (!user) return;
 
+    let changesMade = false;
+
+    // Update name if changed
     if (name !== user.name) {
         const userRef = ref(db, `users/${user.id}`);
         await update(userRef, { name: name });
         toast({ title: "Success", description: "Your name has been updated." });
+        changesMade = true;
     }
 
-    setIsEditing(false);
+    // Update password if fields are filled
+    if (password) {
+        if (password !== confirmPassword) {
+            toast({ variant: "destructive", title: "Error", description: "Passwords do not match." });
+            return;
+        }
+
+        try {
+            const currentUser = auth.currentUser;
+            if (currentUser) {
+                await updatePassword(currentUser, password);
+                toast({ title: "Success", description: "Your password has been changed." });
+                setPassword('');
+                setConfirmPassword('');
+                changesMade = true;
+            }
+        } catch (error: any) {
+            if (error.code === 'auth/requires-recent-login') {
+                toast({
+                    variant: "destructive",
+                    title: "Action Required",
+                    description: "For security, please log out and log back in to change your password."
+                });
+            } else {
+                toast({ variant: "destructive", title: "Error", description: error.message });
+            }
+            return; // Stop if password change fails
+        }
+    }
+
+    if (changesMade) {
+        setIsEditing(false);
+    } else {
+        toast({ description: "No changes were made." });
+        setIsEditing(false);
+    }
   }
 
   const handleCancel = () => {
     if(user) setName(user.name);
+    setPassword('');
+    setConfirmPassword('');
     setIsEditing(false);
   }
 
@@ -136,6 +179,14 @@ export default function UserProfile() {
                     <div className="space-y-2">
                         <Label htmlFor="name">Name</Label>
                         <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="password">New Password</Label>
+                        <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Leave blank to keep current password" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="confirm-password">Confirm New Password</Label>
+                        <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                     </div>
                 </CardContent>
                 <CardFooter className="gap-2 justify-end">
