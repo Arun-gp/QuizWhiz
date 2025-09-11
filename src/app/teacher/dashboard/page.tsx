@@ -253,7 +253,7 @@ export default function TeacherDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="students">
             <CardHeader>
                 <div className="flex justify-between items-center">
                     <div>

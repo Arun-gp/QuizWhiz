@@ -123,8 +123,8 @@ export default function MainLayout({
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive("/teacher/students")} tooltip="Students">
-                            <Link href="/teacher/dashboard"><Users /><span>Students</span></Link>
+                        <SidebarMenuButton asChild isActive={isActive("/teacher/dashboard#students")} tooltip="Students">
+                            <Link href="/teacher/dashboard#students"><Users /><span>Students</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </>
