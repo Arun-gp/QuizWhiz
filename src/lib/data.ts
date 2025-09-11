@@ -7,13 +7,8 @@ import type { Quiz, LeaderboardEntry, ProgressData, User } from './types';
 export const users: User[] = [];
 export const quizzes: Quiz[] = [];
 
-export const leaderboardData: LeaderboardEntry[] = [
-  { rank: 1, name: 'Alex Ray', score: 98, avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026704d' },
-  { rank: 2, name: 'Jordan Lee', score: 95, avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026705d' },
-  { rank: 3, name: 'Taylor Kim', score: 92, avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026706d' },
-  { rank: 4, name: 'Casey Morgan', score: 88, avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026707d' },
-  { rank: 5, name: 'Jamie Brook', score: 85, avatar: 'https://i.pravatar.cc/40?u=a042581f4e29026708d' },
-];
+// leaderboardData is now fetched dynamically in the component.
+export const leaderboardData: LeaderboardEntry[] = [];
 
 export const progressData: ProgressData[] = [
     { quiz: 'GK 101', score: 75 },
