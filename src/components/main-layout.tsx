@@ -62,7 +62,6 @@ import { ref, onValue, update } from "firebase/database";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import type { User } from "@/lib/types";
-import { generateAvatar } from "@/ai/flows/generate-avatar";
 
 
 interface MainLayoutProps {
@@ -80,10 +79,8 @@ export default function MainLayout({
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
-  const [avatarPrompt, setAvatarPrompt] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
-  const [generatedAvatar, setGeneratedAvatar] = useState<string | null>(null);
+  const [newAvatarPreview, setNewAvatarPreview] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -124,56 +121,28 @@ export default function MainLayout({
 
   const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-        setAvatarFile(e.target.files[0]);
+        const file = e.target.files[0];
+        setAvatarFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setNewAvatarPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
     }
-  }
-
-  const handleGenerateAvatar = async () => {
-    if (!avatarFile || !avatarPrompt) {
-        toast({
-            variant: 'destructive',
-            title: 'Missing information',
-            description: 'Please select an image and provide a prompt.',
-        });
-        return;
-    }
-
-    setIsGeneratingAvatar(true);
-    setGeneratedAvatar(null);
-
-    const reader = new FileReader();
-    reader.readAsDataURL(avatarFile);
-    reader.onload = async () => {
-        const photoDataUri = reader.result as string;
-        try {
-            const result = await generateAvatar({ photoDataUri, prompt: avatarPrompt });
-            setGeneratedAvatar(result.avatarDataUri);
-        } catch (error) {
-            console.error(error);
-            toast({
-                variant: 'destructive',
-                title: 'Avatar Generation Failed',
-                description: 'Could not generate a new avatar. Please try again.',
-            });
-        } finally {
-            setIsGeneratingAvatar(false);
-        }
-    };
   }
 
   const handleSaveAvatar = async () => {
-    if (!generatedAvatar || !currentUser) return;
+    if (!newAvatarPreview || !currentUser) return;
 
     try {
         const userRef = ref(db, `users/${currentUser.id}`);
-        await update(userRef, { avatar: generatedAvatar });
+        await update(userRef, { avatar: newAvatarPreview });
         toast({
             title: 'Avatar updated!',
             description: 'Your new profile picture has been saved.',
         });
         setIsAvatarDialogOpen(false);
-        setGeneratedAvatar(null);
-        setAvatarPrompt("");
+        setNewAvatarPreview(null);
         setAvatarFile(null);
     } catch (error) {
         console.error(error);
@@ -340,7 +309,7 @@ export default function MainLayout({
             <DialogHeader>
                 <DialogTitle>Change Profile Picture</DialogTitle>
                 <DialogDescription>
-                    Upload an image and use AI to generate a new avatar.
+                    Upload an image to set as your new profile picture.
                 </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -348,23 +317,13 @@ export default function MainLayout({
                     <Label htmlFor="avatar-file">Upload Image</Label>
                     <Input id="avatar-file" type="file" accept="image/*" onChange={handleAvatarFileChange} />
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="avatar-prompt">Avatar Style Prompt</Label>
-                    <Input id="avatar-prompt" placeholder="e.g., pixel art style, space theme" value={avatarPrompt} onChange={(e) => setAvatarPrompt(e.target.value)} />
-                </div>
-                 {isGeneratingAvatar && (
-                    <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        <span>Generating your new avatar... this may take a moment.</span>
-                    </div>
-                )}
-                {generatedAvatar && (
+                {newAvatarPreview && (
                     <div className="space-y-2">
-                        <Label>Generated Avatar</Label>
+                        <Label>Preview</Label>
                         <div className="flex justify-center">
                             <Avatar className="h-32 w-32">
-                                <AvatarImage src={generatedAvatar} alt="Generated Avatar" />
-                                <AvatarFallback>AI</AvatarFallback>
+                                <AvatarImage src={newAvatarPreview} alt="New Avatar Preview" />
+                                <AvatarFallback>P</AvatarFallback>
                             </Avatar>
                         </div>
                     </div>
@@ -372,11 +331,7 @@ export default function MainLayout({
             </div>
             <DialogFooter>
                  <Button variant="outline" onClick={() => setIsAvatarDialogOpen(false)}>Cancel</Button>
-                <Button onClick={handleGenerateAvatar} disabled={isGeneratingAvatar || !avatarFile || !avatarPrompt}>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate
-                </Button>
-                <Button onClick={handleSaveAvatar} disabled={!generatedAvatar || isGeneratingAvatar}>Save</Button>
+                <Button onClick={handleSaveAvatar} disabled={!newAvatarPreview}>Save</Button>
             </DialogFooter>
         </DialogContent>
       </Dialog>
