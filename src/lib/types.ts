@@ -6,6 +6,7 @@ export interface User {
   email: string;
   role: 'student' | 'teacher' | 'admin';
   marks?: Record<string, number>; // Stores number of correct answers
+  avatar?: string;
 }
 
 export interface Option {

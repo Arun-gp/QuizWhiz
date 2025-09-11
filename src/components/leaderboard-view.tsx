@@ -23,6 +23,7 @@ interface LeaderboardEntry {
   id: string;
   name: string;
   score: number;
+  avatar?: string;
 }
 
 export default function LeaderboardView() {
@@ -34,7 +35,7 @@ export default function LeaderboardView() {
         const unsubscribe = onValue(usersRef, (snapshot) => {
             if (snapshot.exists()) {
                 const usersData = snapshot.val();
-                const students = Object.keys(usersData)
+                const students: User[] = Object.keys(usersData)
                     .map(key => ({ id: key, ...usersData[key] }))
                     .filter(user => user.role === 'student');
 
@@ -44,8 +45,11 @@ export default function LeaderboardView() {
                 })
                 .sort((a, b) => b.score - a.score)
                 .map((student, index) => ({
-                    ...student,
-                    rank: index + 1
+                    rank: index + 1,
+                    id: student.id,
+                    name: student.name,
+                    score: student.score,
+                    avatar: student.avatar,
                 }));
 
                 setLeaderboardData(rankedStudents);
@@ -104,7 +108,7 @@ export default function LeaderboardView() {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      <AvatarImage data-ai-hint="profile picture" src={`https://i.pravatar.cc/40?u=${entry.id}`} alt={entry.name} />
+                      <AvatarImage data-ai-hint="profile picture" src={entry.avatar || `https://i.pravatar.cc/40?u=${entry.id}`} alt={entry.name} />
                       <AvatarFallback>{entry.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <span className="font-medium">{entry.name}</span>

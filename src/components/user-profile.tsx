@@ -82,7 +82,6 @@ export default function UserProfile() {
     return <p>User not found.</p>;
   }
 
-  const userType = user.role;
   const userInitial = user.name ? user.name.charAt(0) : 'U';
 
   return (
@@ -90,7 +89,7 @@ export default function UserProfile() {
         <Card>
             <CardHeader className="flex flex-row items-center gap-4">
                 <Avatar className="h-16 w-16">
-                    <AvatarImage data-ai-hint="profile picture" src={`https://i.pravatar.cc/64?u=${userType}`} />
+                    <AvatarImage data-ai-hint="profile picture" src={user.avatar || `https://i.pravatar.cc/64?u=${user.id}`} />
                     <AvatarFallback className="text-2xl">{userInitial}</AvatarFallback>
                 </Avatar>
                 <div>

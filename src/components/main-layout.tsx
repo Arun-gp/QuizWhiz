@@ -14,7 +14,9 @@ import {
   Sun,
   Image as ImageIcon,
   LogOut,
-  UserCog
+  UserCog,
+  Sparkles,
+  Loader2
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
@@ -42,11 +44,25 @@ import {
   DropdownMenuPortal,
   DropdownMenuSubContent
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { ref, onValue, update } from "firebase/database";
 import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import type { User } from "@/lib/types";
+import { generateAvatar } from "@/ai/flows/generate-avatar";
 
 
 interface MainLayoutProps {
@@ -62,23 +78,37 @@ export default function MainLayout({
   const { setTheme } = useTheme();
   const { toast } = useToast();
   const router = useRouter();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
+  const [avatarPrompt, setAvatarPrompt] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
+  const [generatedAvatar, setGeneratedAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+            const userRef = ref(db, 'users/' + user.uid);
+            onValue(userRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    setCurrentUser({id: user.uid, ...snapshot.val()});
+                }
+            });
+        }
+    });
+    return () => unsubscribe();
+  }, []);
+
   const isActive = (path: string) => pathname.startsWith(path);
   
   const userConfig = {
       student: { name: "Student User", home: "/student/dashboard", quizzes: "/student/dashboard" },
-      teacher: { name: "Teacher Admin", home: "/teacher/dashboard", quizzes: "/teacher/quizzes", students: "/teacher/students" },
+      teacher: { name: "Teacher Admin", home: "/teacher/dashboard", quizzes: "/teacher/quizzes", students: "/teacher/students#students" },
       admin: { name: "Admin", home: "/admin/dashboard", accounts: "/admin/dashboard" }
   }
 
   const user = userConfig[userType];
   
-  const handleChangePicture = () => {
-    toast({
-        title: "Feature not implemented",
-        description: "You'll be able to change your profile picture soon!",
-    });
-  }
-
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -89,6 +119,69 @@ export default function MainLayout({
         title: "Logout Failed",
         description: "An error occurred while logging out.",
       });
+    }
+  }
+
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+        setAvatarFile(e.target.files[0]);
+    }
+  }
+
+  const handleGenerateAvatar = async () => {
+    if (!avatarFile || !avatarPrompt) {
+        toast({
+            variant: 'destructive',
+            title: 'Missing information',
+            description: 'Please select an image and provide a prompt.',
+        });
+        return;
+    }
+
+    setIsGeneratingAvatar(true);
+    setGeneratedAvatar(null);
+
+    const reader = new FileReader();
+    reader.readAsDataURL(avatarFile);
+    reader.onload = async () => {
+        const photoDataUri = reader.result as string;
+        try {
+            const result = await generateAvatar({ photoDataUri, prompt: avatarPrompt });
+            setGeneratedAvatar(result.avatarDataUri);
+        } catch (error) {
+            console.error(error);
+            toast({
+                variant: 'destructive',
+                title: 'Avatar Generation Failed',
+                description: 'Could not generate a new avatar. Please try again.',
+            });
+        } finally {
+            setIsGeneratingAvatar(false);
+        }
+    };
+  }
+
+  const handleSaveAvatar = async () => {
+    if (!generatedAvatar || !currentUser) return;
+
+    try {
+        const userRef = ref(db, `users/${currentUser.id}`);
+        await update(userRef, { avatar: generatedAvatar });
+        toast({
+            title: 'Avatar updated!',
+            description: 'Your new profile picture has been saved.',
+        });
+        setIsAvatarDialogOpen(false);
+        setGeneratedAvatar(null);
+        setAvatarPrompt("");
+        setAvatarFile(null);
+    } catch (error) {
+        console.error(error);
+        toast({
+            variant: 'destructive',
+            title: 'Failed to save avatar',
+            description: 'Could not save your new avatar. Please try again.',
+        });
     }
   }
 
@@ -174,10 +267,10 @@ export default function MainLayout({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage data-ai-hint="profile picture" src={'https://i.pravatar.cc/40?u=${userType}'} />
-                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage data-ai-hint="profile picture" src={currentUser?.avatar || `https://i.pravatar.cc/40?u=${currentUser?.id}`} />
+                  <AvatarFallback>{currentUser?.name?.charAt(0) || 'U'}</AvatarFallback>
                 </Avatar>
-                <span className="font-medium text-sm">{user.name}</span>
+                <span className="font-medium text-sm">{currentUser?.name || user.name}</span>
               </div>
             </div>
           </SidebarFooter>
@@ -189,7 +282,7 @@ export default function MainLayout({
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                     <Avatar>
-                        <AvatarImage data-ai-hint="profile picture" src={'https://i.pravatar.cc/40?u=${userType}'} />
+                        <AvatarImage data-ai-hint="profile picture" src={currentUser?.avatar || `https://i.pravatar.cc/40?u=${currentUser?.id}`} />
                         <AvatarFallback>
                             <UserCircle />
                         </AvatarFallback>
@@ -205,7 +298,7 @@ export default function MainLayout({
                     Profile
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleChangePicture}>
+                <DropdownMenuItem onClick={() => setIsAvatarDialogOpen(true)}>
                     <ImageIcon className="mr-2 h-4 w-4" />
                     Change Picture
                 </DropdownMenuItem>
@@ -241,6 +334,52 @@ export default function MainLayout({
           <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
         </SidebarInset>
       </div>
+
+       <Dialog open={isAvatarDialogOpen} onOpenChange={setIsAvatarDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Change Profile Picture</DialogTitle>
+                <DialogDescription>
+                    Upload an image and use AI to generate a new avatar.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                    <Label htmlFor="avatar-file">Upload Image</Label>
+                    <Input id="avatar-file" type="file" accept="image/*" onChange={handleAvatarFileChange} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="avatar-prompt">Avatar Style Prompt</Label>
+                    <Input id="avatar-prompt" placeholder="e.g., pixel art style, space theme" value={avatarPrompt} onChange={(e) => setAvatarPrompt(e.target.value)} />
+                </div>
+                 {isGeneratingAvatar && (
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>Generating your new avatar... this may take a moment.</span>
+                    </div>
+                )}
+                {generatedAvatar && (
+                    <div className="space-y-2">
+                        <Label>Generated Avatar</Label>
+                        <div className="flex justify-center">
+                            <Avatar className="h-32 w-32">
+                                <AvatarImage src={generatedAvatar} alt="Generated Avatar" />
+                                <AvatarFallback>AI</AvatarFallback>
+                            </Avatar>
+                        </div>
+                    </div>
+                )}
+            </div>
+            <DialogFooter>
+                 <Button variant="outline" onClick={() => setIsAvatarDialogOpen(false)}>Cancel</Button>
+                <Button onClick={handleGenerateAvatar} disabled={isGeneratingAvatar || !avatarFile || !avatarPrompt}>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate
+                </Button>
+                <Button onClick={handleSaveAvatar} disabled={!generatedAvatar || isGeneratingAvatar}>Save</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }
