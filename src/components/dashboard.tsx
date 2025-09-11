@@ -1,7 +1,6 @@
 
 'use client';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import ProgressChart from "./progress-chart";
 import QuizCard from "./quiz-card";
 import { useEffect, useState } from "react";
 import { Quiz } from "@/lib/types";
@@ -54,14 +53,6 @@ export default function Dashboard() {
         </Card>
       </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Progress</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProgressChart />
-        </CardContent>
-      </Card>
     </div>
   );
 }
