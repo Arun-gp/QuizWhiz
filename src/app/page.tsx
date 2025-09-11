@@ -8,19 +8,19 @@ import TypingTitle from "@/components/typing-title";
 
 export default function Home() {
   return (
-    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
-      <div className="flex items-center justify-center py-12 lg:py-24">
-        <div className="mx-auto grid w-[450px] gap-6 px-4 text-center">
-          <div className="space-y-4">
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+      <div className="flex items-center justify-center py-12">
+        <div className="mx-auto grid w-[350px] gap-6 text-center">
+          <div className="grid gap-2">
             <TypingTitle text="Welcome to QuizWhiz" />
-            <div className="flex justify-center py-2">
-                <Button asChild size="lg" className="w-full max-w-xs">
-                    <Link href="/login">Get Started</Link>
-                </Button>
-            </div>
-            <p className="text-muted-foreground md:text-xl pt-2">
+            <p className="text-muted-foreground">
               Your journey to knowledge starts here. Engage, learn, and conquer with our interactive quizzes.
             </p>
+          </div>
+          <div className="grid gap-4">
+            <Button asChild className="w-full">
+              <Link href="/login">Get Started</Link>
+            </Button>
           </div>
         </div>
       </div>
