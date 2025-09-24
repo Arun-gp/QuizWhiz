@@ -24,7 +24,7 @@ import Link from 'next/link';
 
 export default function SetupAdminPage() {
   const [email, setEmail] = useState('admin@gmail.com');
-  const [password, setPassword] = useState('admin@123');
+  const [password, setPassword] = useState('admin@12345');
   const [name, setName] = useState('Admin User');
   const [adminExists, setAdminExists] = useState(true);
   const [loading, setLoading] = useState(true);
