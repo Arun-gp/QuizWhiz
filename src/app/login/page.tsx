@@ -52,7 +52,7 @@ export default function LoginPage() {
                 toast({
                     variant: "destructive",
                     title: "Login Failed",
-                    description: "User role is not defined.",
+                    description: "User role is not defined. Please contact an administrator.",
                 });
                 break;
         }
