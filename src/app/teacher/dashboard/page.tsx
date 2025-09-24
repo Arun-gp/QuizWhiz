@@ -4,14 +4,13 @@ import MainLayout from "@/components/main-layout";
 import { Loader2 } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { ref, get, child } from "firebase/database";
+import { ref, get } from "firebase/database";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from 'react';
 
 export default function TeacherDashboardPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [authChecked, setAuthChecked] = useState(false);
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
@@ -20,7 +19,6 @@ export default function TeacherDashboardPage() {
                 const snapshot = await get(userRef);
                 if (snapshot.exists() && snapshot.val().role === 'teacher') {
                      setLoading(false);
-                     setAuthChecked(true);
                 }
                 else {
                     router.push('/login');
@@ -33,7 +31,7 @@ export default function TeacherDashboardPage() {
         return () => unsubscribeAuth();
     }, [router]);
 
-  if (!authChecked || loading) {
+  if (loading) {
     return (
         <div className="flex items-center justify-center h-screen">
            <Loader2 className="h-10 w-10 animate-spin" />
