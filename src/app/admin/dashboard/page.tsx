@@ -222,10 +222,8 @@ export default function AdminDashboardPage() {
     if (loading || !isAuthenticated) {
         return (
             <MainLayout userType="admin">
-                <div className="space-y-4">
+                <div className="flex items-center justify-center h-full">
                     <Skeleton className="h-10 w-3/4" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-40 w-full" />
                 </div>
             </MainLayout>
         );

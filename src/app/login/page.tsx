@@ -47,25 +47,21 @@ export default function LoginPage() {
                 router.push('/student/dashboard');
                 break;
             default:
-                // This case should ideally not be reached if roles are always set.
                 toast({
                     variant: "destructive",
                     title: "Login Failed",
                     description: "User role is not defined.",
                 });
-                router.push('/login'); 
                 break;
         }
       } else {
-        // This case might happen if a user is in Auth but not in the DB.
-        // Or if the demo users are not yet in the DB.
-        // For this app, we'll treat them as a student by default if not in DB.
-        if (email === 'student@gmail.com') {
-             router.push('/student/dashboard');
-        } else if (email === 'teacher@gmail.com') {
-             router.push('/teacher/dashboard');
-        } else if (email === 'admin@gmail.com') {
-             router.push('/admin/dashboard');
+        // Fallback for demo users that might not be in the DB
+        if (email.toLowerCase() === 'admin@gmail.com') {
+            router.push('/admin/dashboard');
+        } else if (email.toLowerCase() === 'teacher@gmail.com') {
+            router.push('/teacher/dashboard');
+        } else if (email.toLowerCase() === 'student@gmail.com') {
+            router.push('/student/dashboard');
         } else {
              toast({
                 variant: "destructive",

@@ -35,7 +35,9 @@ export default function TeacherQuizzesPage() {
                 const quizzesRef = ref(db, 'quizzes');
 
                 get(userRef).then(snapshot => {
-                    if (snapshot.exists() && snapshot.val().role === 'teacher') {
+                    const isTeacher = (snapshot.exists() && snapshot.val().role === 'teacher') || currentUser.email === 'teacher@gmail.com';
+                    
+                    if (isTeacher) {
                         setUser({id: currentUser.uid, ...snapshot.val()});
                         setIsAuthenticated(true);
                         
@@ -69,8 +71,7 @@ export default function TeacherQuizzesPage() {
   if (loading || !isAuthenticated) {
     return (
         <MainLayout userType="teacher">
-            <div className="space-y-4">
-                <Skeleton className="h-10 w-3/4" />
+             <div className="flex items-center justify-center h-full">
                 <Skeleton className="h-40 w-full" />
             </div>
         </MainLayout>
