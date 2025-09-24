@@ -62,13 +62,17 @@ export default function LoginPage() {
          });
       }
 
-    } catch (error) {
-      console.error("Firebase authentication error:", error);
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: "Please check your email and password and try again.",
-      });
+    } catch (error: any) {
+        console.error("Firebase authentication error:", error);
+        let description = "An unexpected error occurred. Please try again.";
+        if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+            description = "Invalid email or password. Please check your credentials and try again.";
+        }
+        toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description: description,
+        });
     }
   };
 
