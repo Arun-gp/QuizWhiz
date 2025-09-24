@@ -43,7 +43,6 @@ export default function AdminDashboardPage() {
     const { toast } = useToast();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -51,7 +50,6 @@ export default function AdminDashboardPage() {
                 const checkAdminStatus = async () => {
                     const userRecord = await get(child(ref(db), `users/${user.uid}`));
                     if (userRecord.exists() && userRecord.val().role === 'admin') {
-                        setIsAuthenticated(true);
                         const dbRef = ref(db);
                         const snapshot = await get(child(dbRef, 'users'));
                         if (snapshot.exists()) {
@@ -62,10 +60,10 @@ export default function AdminDashboardPage() {
                             }));
                             setAllUsers(usersList);
                         }
+                        setLoading(false);
                     } else {
                         router.push('/login');
                     }
-                    setLoading(false);
                 };
                 checkAdminStatus();
             } else {
@@ -219,7 +217,7 @@ export default function AdminDashboardPage() {
         </Table>
     )
 
-    if (loading || !isAuthenticated) {
+    if (loading) {
         return (
             <MainLayout userType="admin">
                 <div className="flex items-center justify-center h-full">

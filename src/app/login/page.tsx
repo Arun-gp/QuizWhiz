@@ -55,20 +55,11 @@ export default function LoginPage() {
                 break;
         }
       } else {
-        // Fallback for demo users that might not be in the DB
-        if (email.toLowerCase() === 'admin@gmail.com') {
-            router.push('/admin/dashboard');
-        } else if (email.toLowerCase() === 'teacher@gmail.com') {
-            router.push('/teacher/dashboard');
-        } else if (email.toLowerCase() === 'student@gmail.com') {
-            router.push('/student/dashboard');
-        } else {
-             toast({
-                variant: "destructive",
-                title: "Login Failed",
-                description: "User data not found in the database.",
-             });
-        }
+         toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description: "User data not found in the database.",
+         });
       }
 
     } catch (error) {

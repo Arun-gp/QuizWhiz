@@ -26,7 +26,6 @@ export default function TeacherQuizzesPage() {
     const [user, setUser] = useState<User | null>(null);
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -35,11 +34,8 @@ export default function TeacherQuizzesPage() {
                 const quizzesRef = ref(db, 'quizzes');
 
                 get(userRef).then(snapshot => {
-                    const isTeacher = (snapshot.exists() && snapshot.val().role === 'teacher') || currentUser.email === 'teacher@gmail.com';
-                    
-                    if (isTeacher) {
+                    if (snapshot.exists() && snapshot.val().role === 'teacher') {
                         setUser({id: currentUser.uid, ...snapshot.val()});
-                        setIsAuthenticated(true);
                         
                         const unsubscribeQuizzes = onValue(quizzesRef, (snapshot) => {
                             if (snapshot.exists()) {
@@ -68,7 +64,7 @@ export default function TeacherQuizzesPage() {
         return () => unsubscribeAuth();
     }, [router]);
 
-  if (loading || !isAuthenticated) {
+  if (loading) {
     return (
         <MainLayout userType="teacher">
              <div className="flex items-center justify-center h-full">

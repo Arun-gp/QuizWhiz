@@ -41,7 +41,6 @@ export default function TeacherStudentsPage() {
     const { toast } = useToast();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
@@ -49,10 +48,7 @@ export default function TeacherStudentsPage() {
                 const userRef = ref(db, `users/${user.uid}`);
                 const snapshot = await get(userRef);
 
-                const isTeacher = (snapshot.exists() && snapshot.val().role === 'teacher') || user.email === 'teacher@gmail.com';
-
-                if (isTeacher) {
-                     setIsAuthenticated(true);
+                if (snapshot.exists() && snapshot.val().role === 'teacher') {
                      const usersRef = ref(db, 'users');
                      const unsubscribeUsers = onValue(usersRef, (snapshot) => {
                         if (snapshot.exists()) {
@@ -96,6 +92,7 @@ export default function TeacherStudentsPage() {
         }
 
         try {
+            // Note: This creates an auth user but doesn't sign them in.
             const userCredential = await createUserWithEmailAndPassword(auth, newStudent.email, newStudent.password);
             const studentToAdd: Omit<User, 'id'> = {
                 name: newStudent.name,
@@ -179,7 +176,7 @@ export default function TeacherStudentsPage() {
         }
     }
 
-  if (loading || !isAuthenticated) {
+  if (loading) {
     return (
         <MainLayout userType="teacher">
             <div className="flex items-center justify-center h-full">
