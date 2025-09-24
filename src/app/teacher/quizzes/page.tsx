@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
-import type { Quiz } from '@/lib/types';
+import type { Quiz, User } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -17,36 +17,44 @@ import {
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, get } from "firebase/database";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TeacherQuizzesPage() {
     const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+    const [user, setUser] = useState<User | null>(null);
     const router = useRouter();
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-            if (user) {
+        const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+            if (currentUser) {
+                const userRef = ref(db, `users/${currentUser.uid}`);
                 const quizzesRef = ref(db, 'quizzes');
 
-                const unsubscribeQuizzes = onValue(quizzesRef, (snapshot) => {
-                    if (snapshot.exists()) {
-                        const quizzesData = snapshot.val();
-                        const quizzesList: Quiz[] = Object.keys(quizzesData).map(key => ({
-                            id: key,
-                            ...quizzesData[key],
-                            questions: quizzesData[key].questions || []
-                        }));
-                        setQuizzes(quizzesList);
+                get(userRef).then(snapshot => {
+                    if (snapshot.exists() && snapshot.val().role === 'teacher') {
+                        setUser({id: currentUser.uid, ...snapshot.val()});
+                        const unsubscribeQuizzes = onValue(quizzesRef, (snapshot) => {
+                            if (snapshot.exists()) {
+                                const quizzesData = snapshot.val();
+                                const quizzesList: Quiz[] = Object.keys(quizzesData).map(key => ({
+                                    id: key,
+                                    ...quizzesData[key],
+                                    questions: quizzesData[key].questions || []
+                                }));
+                                setQuizzes(quizzesList);
+                            }
+                            setLoading(false);
+                        });
+
+                         return () => unsubscribeQuizzes();
+                    } else {
+                        router.push('/login');
                     }
-                    setLoading(false);
                 });
 
-                return () => {
-                    unsubscribeQuizzes();
-                };
             } else {
                 router.push('/login');
             }
@@ -65,6 +73,8 @@ export default function TeacherQuizzesPage() {
         </MainLayout>
     );
   }
+  
+  const myQuizzes = quizzes.filter(quiz => quiz.authorId === user?.id);
 
   return (
     <MainLayout userType="teacher">
@@ -95,7 +105,7 @@ export default function TeacherQuizzesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {quizzes.map((quiz) => (
+                {myQuizzes.map((quiz) => (
                   <TableRow key={quiz.id}>
                     <TableCell className="font-medium">{quiz.title}</TableCell>
                     <TableCell>{quiz.questions.length}</TableCell>
@@ -107,7 +117,7 @@ export default function TeacherQuizzesPage() {
                     </TableCell>
                   </TableRow>
                 ))}
-                 {quizzes.length === 0 && (
+                 {myQuizzes.length === 0 && (
                     <TableRow>
                         <TableCell colSpan={4} className="text-center">No quizzes found.</TableCell>
                     </TableRow>

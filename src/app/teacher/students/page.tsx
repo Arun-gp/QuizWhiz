@@ -43,24 +43,31 @@ export default function TeacherStudentsPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+        const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const usersRef = ref(db, 'users');
-                const unsubscribeUsers = onValue(usersRef, (snapshot) => {
-                    if (snapshot.exists()) {
-                        const usersData = snapshot.val();
-                        const usersList: User[] = Object.keys(usersData).map(key => ({
-                            id: key,
-                            ...usersData[key]
-                        }));
-                        setStudents(usersList.filter(u => u.role === 'student'));
-                    }
-                    setLoading(false);
-                });
-                
-                return () => {
-                    unsubscribeUsers();
-                };
+                const userRef = ref(db, `users/${user.uid}`);
+                const snapshot = await get(userRef);
+
+                if (snapshot.exists() && snapshot.val().role === 'teacher') {
+                     const usersRef = ref(db, 'users');
+                     const unsubscribeUsers = onValue(usersRef, (snapshot) => {
+                        if (snapshot.exists()) {
+                            const usersData = snapshot.val();
+                            const usersList: User[] = Object.keys(usersData).map(key => ({
+                                id: key,
+                                ...usersData[key]
+                            }));
+                            setStudents(usersList.filter(u => u.role === 'student'));
+                        }
+                        setLoading(false);
+                    });
+                    
+                    return () => {
+                        unsubscribeUsers();
+                    };
+                } else {
+                    router.push('/login');
+                }
             } else {
                 router.push('/login');
             }
@@ -152,7 +159,7 @@ export default function TeacherStudentsPage() {
         setIsDeleteStudentDialogOpen(true);
     };
 
-    const handleDeleteStudent = async () => {
+    const handleDeleteStudent = async ().
         if(!currentStudent) return;
         try {
              await remove(ref(db, 'users/' + currentStudent.id));

@@ -17,7 +17,7 @@ import {
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, get } from "firebase/database";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -26,9 +26,15 @@ export default function TeacherDashboardPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+        const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
             if (user) {
-                setLoading(false);
+                const userRef = ref(db, `users/${user.uid}`);
+                const snapshot = await get(userRef);
+                if (snapshot.exists() && snapshot.val().role === 'teacher') {
+                     setLoading(false);
+                } else {
+                    router.push('/login');
+                }
             } else {
                 router.push('/login');
             }

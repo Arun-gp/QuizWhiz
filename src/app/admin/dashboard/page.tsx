@@ -56,7 +56,16 @@ export default function AdminDashboardPage() {
                             id: key,
                             ...usersData[key]
                         }));
-                        setAllUsers(usersList);
+                        
+                        const userRecord = usersData[user.uid];
+                        if (userRecord && userRecord.role === 'admin') {
+                             setAllUsers(usersList);
+                        } else {
+                            // If not an admin, redirect
+                             router.push('/login');
+                        }
+                    } else {
+                         router.push('/login');
                     }
                     setLoading(false);
                 };
