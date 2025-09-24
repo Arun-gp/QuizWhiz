@@ -159,7 +159,7 @@ export default function TeacherStudentsPage() {
         setIsDeleteStudentDialogOpen(true);
     };
 
-    const handleDeleteStudent = async ().
+    const handleDeleteStudent = async () => {
         if(!currentStudent) return;
         try {
              await remove(ref(db, 'users/' + currentStudent.id));
