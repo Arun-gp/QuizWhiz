@@ -28,10 +28,11 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { ref, set, get, child, remove } from "firebase/database";
+import { ref, set, get, child, remove, onValue } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
 
 export default function AdminDashboardPage() {
     const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -43,29 +44,35 @@ export default function AdminDashboardPage() {
     const { toast } = useToast();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [authChecked, setAuthChecked] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                const checkAdminStatus = async () => {
-                    const userRecord = await get(child(ref(db), `users/${user.uid}`));
-                    if (userRecord.exists() && userRecord.val().role === 'admin') {
-                        const dbRef = ref(db);
-                        const snapshot = await get(child(dbRef, 'users'));
-                        if (snapshot.exists()) {
-                            const usersData = snapshot.val();
-                            const usersList = Object.keys(usersData).map(key => ({
-                                id: key,
-                                ...usersData[key]
-                            }));
-                            setAllUsers(usersList);
-                        }
-                        setLoading(false);
+                const userRef = ref(db, `users/${user.uid}`);
+                const userUnsubscribe = onValue(userRef, (snapshot) => {
+                    if (snapshot.exists() && snapshot.val().role === 'admin') {
+                        const usersRef = ref(db, 'users');
+                        const allUsersUnsubscribe = onValue(usersRef, (snapshot) => {
+                            if (snapshot.exists()) {
+                                const usersData = snapshot.val();
+                                const usersList = Object.keys(usersData).map(key => ({
+                                    id: key,
+                                    ...usersData[key]
+                                }));
+                                setAllUsers(usersList);
+                            }
+                            setLoading(false);
+                            setAuthChecked(true);
+                        });
+                        // Cleanup function for all users listener
+                        return () => allUsersUnsubscribe();
                     } else {
                         router.push('/login');
                     }
-                };
-                checkAdminStatus();
+                });
+                 // Cleanup function for user role listener
+                return () => userUnsubscribe();
             } else {
                 router.push('/login');
             }
@@ -104,7 +111,7 @@ export default function AdminDashboardPage() {
             
             await set(ref(db, 'users/' + userId), userToAdd);
 
-            setAllUsers([...allUsers, { ...userToAdd, id: userId }]);
+            // No need to manually update state, onValue will do it
             setIsAddUserDialogOpen(false);
             toast({
                 title: 'Success',
@@ -142,7 +149,6 @@ export default function AdminDashboardPage() {
                 role: currentUser.role,
             };
             await set(ref(db, 'users/' + currentUser.id), userToUpdate);
-            setAllUsers(allUsers.map(u => u.id === currentUser.id ? currentUser : u));
             setIsEditUserDialogOpen(false);
             toast({
                 title: 'Success',
@@ -166,7 +172,6 @@ export default function AdminDashboardPage() {
         if(!currentUser) return;
         try {
             await remove(ref(db, 'users/' + currentUser.id));
-            setAllUsers(allUsers.filter(u => u.id !== currentUser.id));
             setIsDeleteUserDialogOpen(false);
             toast({
                 title: 'Success',
@@ -217,13 +222,11 @@ export default function AdminDashboardPage() {
         </Table>
     )
 
-    if (loading) {
+    if (!authChecked || loading) {
         return (
-            <MainLayout userType="admin">
-                <div className="flex items-center justify-center h-full">
-                    <Skeleton className="h-10 w-3/4" />
-                </div>
-            </MainLayout>
+            <div className="flex items-center justify-center h-screen">
+                <Loader2 className="h-10 w-10 animate-spin" />
+            </div>
         );
     }
 

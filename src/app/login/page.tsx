@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { ref, get, child } from "firebase/database";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import type { User } from "@/lib/types";
 
 
@@ -26,10 +26,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
   const handleLogin = async () => {
+    setLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const userRecord = await get(child(ref(db), `users/${userCredential.user.uid}`));
@@ -58,7 +60,7 @@ export default function LoginPage() {
          toast({
             variant: "destructive",
             title: "Login Failed",
-            description: "User data not found in the database.",
+            description: "User data not found in the database. Please contact an administrator.",
          });
       }
 
@@ -73,6 +75,8 @@ export default function LoginPage() {
             title: "Login Failed",
             description: description,
         });
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -103,6 +107,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onKeyDown={handleKeyPress}
+              disabled={loading}
             />
           </div>
           <div className="space-y-2 relative">
@@ -115,6 +120,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={handleKeyPress}
               className="pr-10"
+              disabled={loading}
             />
             <Button
                 type="button"
@@ -122,6 +128,7 @@ export default function LoginPage() {
                 size="icon"
                 className="absolute top-1/2 right-1 h-8 w-8 transform text-muted-foreground"
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
             >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
@@ -129,8 +136,9 @@ export default function LoginPage() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full" onClick={handleLogin}>
-            Login
+          <Button className="w-full" onClick={handleLogin} disabled={loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading ? "Logging in..." : "Login"}
           </Button>
         </CardFooter>
       </Card>
