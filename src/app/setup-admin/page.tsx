@@ -19,7 +19,7 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { ref, set, get, child } from 'firebase/database';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SetupAdminPage() {
@@ -101,7 +101,7 @@ export default function SetupAdminPage() {
   if (loading) {
       return (
           <div className="flex items-center justify-center min-h-screen bg-background">
-            <p>Loading...</p>
+            <Loader2 className="h-10 w-10 animate-spin" />
           </div>
       )
   }
@@ -145,19 +145,20 @@ export default function SetupAdminPage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
-            <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
+            <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} disabled={loading} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button className="w-full" onClick={handleCreateAdmin} disabled={loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {loading ? 'Creating...' : 'Create Admin'}
           </Button>
         </CardFooter>

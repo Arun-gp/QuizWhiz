@@ -58,7 +58,7 @@ export default function Home() {
           )}
 
           <div className="grid gap-4">
-            <Button asChild className="w-full" disabled={!usersExist}>
+            <Button asChild className="w-full" disabled={!usersExist && !loading}>
               <Link href="/login">Get Started</Link>
             </Button>
           </div>
