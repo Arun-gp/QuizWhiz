@@ -41,6 +41,7 @@ export default function TeacherStudentsPage() {
     const { toast } = useToast();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
@@ -49,6 +50,7 @@ export default function TeacherStudentsPage() {
                 const snapshot = await get(userRef);
 
                 if (snapshot.exists() && snapshot.val().role === 'teacher') {
+                     setIsAuthenticated(true);
                      const usersRef = ref(db, 'users');
                      const unsubscribeUsers = onValue(usersRef, (snapshot) => {
                         if (snapshot.exists()) {
@@ -178,7 +180,7 @@ export default function TeacherStudentsPage() {
         }
     }
 
-  if (loading) {
+  if (loading || !isAuthenticated) {
     return (
         <MainLayout userType="teacher">
             <div className="space-y-4">

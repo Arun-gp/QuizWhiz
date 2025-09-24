@@ -26,6 +26,7 @@ export default function TeacherQuizzesPage() {
     const [user, setUser] = useState<User | null>(null);
     const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -36,6 +37,8 @@ export default function TeacherQuizzesPage() {
                 get(userRef).then(snapshot => {
                     if (snapshot.exists() && snapshot.val().role === 'teacher') {
                         setUser({id: currentUser.uid, ...snapshot.val()});
+                        setIsAuthenticated(true);
+                        
                         const unsubscribeQuizzes = onValue(quizzesRef, (snapshot) => {
                             if (snapshot.exists()) {
                                 const quizzesData = snapshot.val();
@@ -63,7 +66,7 @@ export default function TeacherQuizzesPage() {
         return () => unsubscribeAuth();
     }, [router]);
 
-  if (loading) {
+  if (loading || !isAuthenticated) {
     return (
         <MainLayout userType="teacher">
             <div className="space-y-4">

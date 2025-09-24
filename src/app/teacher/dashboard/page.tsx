@@ -24,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function TeacherDashboardPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
@@ -31,6 +32,7 @@ export default function TeacherDashboardPage() {
                 const userRef = ref(db, `users/${user.uid}`);
                 const snapshot = await get(userRef);
                 if (snapshot.exists() && snapshot.val().role === 'teacher') {
+                     setIsAuthenticated(true);
                      setLoading(false);
                 } else {
                     router.push('/login');
@@ -43,7 +45,7 @@ export default function TeacherDashboardPage() {
         return () => unsubscribeAuth();
     }, [router]);
 
-  if (loading) {
+  if (loading || !isAuthenticated) {
     return (
         <MainLayout userType="teacher">
             <div className="space-y-4">

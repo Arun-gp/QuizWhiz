@@ -43,33 +43,31 @@ export default function AdminDashboardPage() {
     const { toast } = useToast();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                const fetchUsers = async () => {
-                    const dbRef = ref(db);
-                    const snapshot = await get(child(dbRef, 'users'));
-                    if (snapshot.exists()) {
-                        const usersData = snapshot.val();
-                        const usersList = Object.keys(usersData).map(key => ({
-                            id: key,
-                            ...usersData[key]
-                        }));
-                        
-                        const userRecord = usersData[user.uid];
-                        if (userRecord && userRecord.role === 'admin') {
-                             setAllUsers(usersList);
-                        } else {
-                            // If not an admin, redirect
-                             router.push('/login');
+                const checkAdminStatus = async () => {
+                    const userRecord = await get(child(ref(db), `users/${user.uid}`));
+                    if (userRecord.exists() && userRecord.val().role === 'admin') {
+                        setIsAuthenticated(true);
+                        const dbRef = ref(db);
+                        const snapshot = await get(child(dbRef, 'users'));
+                        if (snapshot.exists()) {
+                            const usersData = snapshot.val();
+                            const usersList = Object.keys(usersData).map(key => ({
+                                id: key,
+                                ...usersData[key]
+                            }));
+                            setAllUsers(usersList);
                         }
                     } else {
-                         router.push('/login');
+                        router.push('/login');
                     }
                     setLoading(false);
                 };
-                fetchUsers();
+                checkAdminStatus();
             } else {
                 router.push('/login');
             }
@@ -221,7 +219,7 @@ export default function AdminDashboardPage() {
         </Table>
     )
 
-    if (loading) {
+    if (loading || !isAuthenticated) {
         return (
             <MainLayout userType="admin">
                 <div className="space-y-4">

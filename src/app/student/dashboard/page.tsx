@@ -12,10 +12,12 @@ import { useEffect, useState } from "react";
 export default function StudentDashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
         if(user) {
+            setIsAuthenticated(true);
             setLoading(false);
         } else {
             router.push('/login');
@@ -25,7 +27,7 @@ export default function StudentDashboardPage() {
     return () => unsubscribe();
   }, [router]);
   
-  if (loading) {
+  if (loading || !isAuthenticated) {
     return (
         <MainLayout userType="student">
             <div className="space-y-4">
