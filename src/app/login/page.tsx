@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { ref, get, child } from "firebase/database";
+import { ref, get } from "firebase/database";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import type { User } from "@/lib/types";
 
@@ -34,7 +34,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const userRecord = await get(child(ref(db), `users/${userCredential.user.uid}`));
+      const userRecord = await get(ref(db, `users/${userCredential.user.uid}`));
       
       if (userRecord.exists()) {
         const user = userRecord.val() as User;

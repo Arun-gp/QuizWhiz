@@ -100,9 +100,9 @@ export default function MainLayout({
   const isActive = (path: string) => pathname === path || (path !== '/' && pathname.startsWith(path));
   
   const userConfig = {
-      student: { name: "Student User", home: "/student/dashboard", quizzes: "/student/dashboard", myMarks: "/student/my-marks" },
-      teacher: { name: "Teacher Admin", home: "/teacher/dashboard", quizzes: "/teacher/quizzes", students: "/teacher/students" },
-      admin: { name: "Admin", home: "/admin/dashboard", accounts: "/admin/dashboard" }
+      student: { name: "Student", home: "/student/dashboard", myMarks: "/student/my-marks" },
+      teacher: { name: "Teacher", home: "/teacher/dashboard", quizzes: "/teacher/quizzes", students: "/teacher/students" },
+      admin: { name: "Admin", home: "/admin/dashboard" }
   }
 
   const user = userConfig[userType];
