@@ -57,6 +57,7 @@ export default function LoginPage() {
                 break;
         }
       } else {
+         await auth.signOut(); // Sign out the user if their DB record doesn't exist
          toast({
             variant: "destructive",
             title: "Login Failed",
