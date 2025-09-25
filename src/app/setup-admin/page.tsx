@@ -23,7 +23,7 @@ import type { User } from '@/lib/types';
 
 export default function SetupAdminPage() {
   const [email, setEmail] = useState('admin@gmail.com');
-  const [password, setPassword] = useState('admin@123');
+  const [password, setPassword] = useState('a11uca039');
   const [name, setName] = useState('Admin User');
   const [loading, setLoading] = useState(false);
   const [isAdminSetup, setIsAdminSetup] = useState<boolean | null>(null);

@@ -46,9 +46,11 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
+      <MainLayout userType="admin">
         <div className="flex items-center justify-center h-screen">
            <Loader2 className="h-10 w-10 animate-spin" />
         </div>
+      </MainLayout>
     );
   }
 

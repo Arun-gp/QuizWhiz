@@ -33,9 +33,11 @@ export default function StudentDashboardPage() {
   
   if (loading) {
     return (
+      <MainLayout userType="student">
         <div className="flex items-center justify-center h-screen">
             <Loader2 className="h-10 w-10 animate-spin" />
         </div>
+      </MainLayout>
     );
   }
 
