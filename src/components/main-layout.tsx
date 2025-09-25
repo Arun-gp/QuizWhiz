@@ -102,7 +102,7 @@ export default function MainLayout({
   const userConfig = {
       student: { name: "Student", home: "/student/dashboard", myMarks: "/student/my-marks" },
       teacher: { name: "Teacher", home: "/teacher/dashboard", quizzes: "/teacher/quizzes", students: "/teacher/students" },
-      admin: { name: "Admin", home: "/admin/dashboard" }
+      admin: { name: "Admin", home: "/admin/dashboard", accounts: "/admin/accounts" }
   }
 
   const user = userConfig[userType];
@@ -163,6 +163,11 @@ export default function MainLayout({
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={isActive(user.home)} tooltip="Dashboard">
                             <Link href={user.home}><LayoutDashboard /><span>Dashboard</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive(user.accounts)} tooltip="Accounts">
+                            <Link href={user.accounts}><Users /><span>Accounts</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </>

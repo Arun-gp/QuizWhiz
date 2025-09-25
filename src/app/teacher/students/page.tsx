@@ -27,7 +27,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { ref, set, get, child, remove, onValue } from "firebase/database";
+import { ref, set, get, remove, onValue } from "firebase/database";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 

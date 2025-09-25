@@ -7,6 +7,7 @@ export interface User {
   role: 'student' | 'teacher' | 'admin';
   marks?: Record<string, number>; // Stores number of correct answers
   avatar?: string;
+  totalScore?: number;
 }
 
 export interface Option {
