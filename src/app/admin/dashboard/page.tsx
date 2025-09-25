@@ -14,7 +14,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 export default function AdminDashboardPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<User | null>(null);
     const [allUsers, setAllUsers] = useState<User[]>([]);
 
     useEffect(() => {
@@ -23,8 +22,6 @@ export default function AdminDashboardPage() {
                 const userRef = ref(db, `users/${currentUser.uid}`);
                 const snapshot = await get(userRef);
                 if (snapshot.exists() && snapshot.val().role === 'admin') {
-                    setUser({ id: currentUser.uid, ...snapshot.val() });
-                    
                     const allUsersRef = ref(db, 'users');
                     const allUsersSnapshot = await get(allUsersRef);
                     if(allUsersSnapshot.exists()) {
