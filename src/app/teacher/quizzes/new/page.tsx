@@ -29,6 +29,7 @@ export default function NewQuizPage() {
         questions: [],
     });
     const [isGenerating, setIsGenerating] = useState(false);
+    const [numQuestions, setNumQuestions] = useState(5);
 
     const handleGenerateQuestions = async () => {
         if (!quiz.title) {
@@ -41,7 +42,7 @@ export default function NewQuizPage() {
         }
         setIsGenerating(true);
         try {
-            const result: GenerateQuestionsOutput = await generateQuestions({ topic: quiz.title });
+            const result: GenerateQuestionsOutput = await generateQuestions({ topic: quiz.title, count: numQuestions });
             
             const newQuestions: Question[] = result.questions.map((q, index) => {
                 const questionId = `q${Date.now() + index}`;
@@ -200,10 +201,22 @@ export default function NewQuizPage() {
                                 <CardTitle>Questions</CardTitle>
                                 <CardDescription>Add or generate questions for your quiz.</CardDescription>
                             </div>
-                            <Button onClick={handleGenerateQuestions} disabled={isGenerating || !quiz.title}>
-                                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                                {isGenerating ? "Generating..." : "Generate Questions with AI"}
-                            </Button>
+                             <div className="flex items-center gap-2">
+                                <Label htmlFor="num-questions" className="sr-only">Number of questions</Label>
+                                <Input 
+                                    id="num-questions"
+                                    type="number"
+                                    className="w-20"
+                                    value={numQuestions}
+                                    onChange={(e) => setNumQuestions(parseInt(e.target.value) || 5)}
+                                    min="1"
+                                    max="10"
+                                />
+                                <Button onClick={handleGenerateQuestions} disabled={isGenerating || !quiz.title}>
+                                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                                    {isGenerating ? "Generating..." : "Generate"}
+                                </Button>
+                            </div>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-6">
@@ -252,7 +265,7 @@ export default function NewQuizPage() {
                         {quiz.questions?.length === 0 && !isGenerating && (
                             <div className="text-center text-muted-foreground py-8">
                                 <p>No questions yet.</p>
-                                <p>Click "Generate Questions with AI" to start.</p>
+                                <p>Click "Generate" to start.</p>
                             </div>
                         )}
                     </CardContent>

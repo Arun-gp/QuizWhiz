@@ -13,6 +13,7 @@ import {z} from 'zod';
 
 const GenerateQuestionsInputSchema = z.object({
   topic: z.string().describe('The topic for the quiz questions.'),
+  count: z.number().describe('The number of questions to generate.'),
 });
 export type GenerateQuestionsInput = z.infer<typeof GenerateQuestionsInputSchema>;
 
@@ -24,7 +25,7 @@ const QuestionSchema = z.object({
 });
 
 const GenerateQuestionsOutputSchema = z.object({
-  questions: z.array(QuestionSchema).describe('An array of 5 generated quiz questions.'),
+  questions: z.array(QuestionSchema).describe('An array of generated quiz questions.'),
 });
 
 export type GenerateQuestionsOutput = z.infer<typeof GenerateQuestionsOutputSchema>;
@@ -38,7 +39,7 @@ const prompt = ai.definePrompt({
   name: 'generateQuestionsPrompt',
   input: {schema: GenerateQuestionsInputSchema},
   output: {schema: GenerateQuestionsOutputSchema},
-  prompt: `You are an expert quiz creator. Generate 5 multiple-choice questions about the topic: {{{topic}}}. Each question must have 4 options and 1 correct answer.`,
+  prompt: `You are an expert quiz creator. Generate {{{count}}} multiple-choice questions about the topic: {{{topic}}}. Each question must have 4 options and 1 correct answer.`,
 });
 
 const generateQuestionsFlow = ai.defineFlow(
