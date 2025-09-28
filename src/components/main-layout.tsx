@@ -218,8 +218,8 @@ export default function MainLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-muted/40">
-        <Sidebar variant="floating">
+      <div className="flex min-h-screen">
+        <Sidebar variant="inset">
           <SidebarHeader>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-lg">
@@ -246,7 +246,7 @@ export default function MainLayout({
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
-          <header className="flex items-center justify-between p-4 border-b lg:justify-end bg-background">
+          <header className="flex items-center justify-between p-4 border-b lg:justify-end bg-card">
             <SidebarTrigger className="lg:hidden" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -301,7 +301,7 @@ export default function MainLayout({
               </DropdownMenuContent>
             </DropdownMenu>
           </header>
-          <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-background">{children}</main>
         </SidebarInset>
       </div>
 
