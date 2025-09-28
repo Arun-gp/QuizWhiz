@@ -62,7 +62,7 @@ export default function LeaderboardView() {
 
     if (loading) {
         return (
-            <Card>
+            <Card className="h-full flex flex-col">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Trophy className="text-accent" />
@@ -70,7 +70,7 @@ export default function LeaderboardView() {
                     </CardTitle>
                     <CardDescription>See who's at the top of the class!</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-1">
                     <div className="space-y-4">
                         <Skeleton className="h-12 w-full" />
                         <Skeleton className="h-12 w-full" />
@@ -84,7 +84,7 @@ export default function LeaderboardView() {
     }
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Trophy className="text-accent" />
@@ -92,7 +92,7 @@ export default function LeaderboardView() {
         </CardTitle>
         <CardDescription>See who's at the top of the class!</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 overflow-y-auto">
         <Table>
           <TableHeader>
             <TableRow>
