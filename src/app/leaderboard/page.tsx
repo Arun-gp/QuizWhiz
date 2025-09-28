@@ -5,7 +5,7 @@ import LeaderboardView from "@/components/leaderboard-view";
 export default function LeaderboardPage() {
   return (
     <MainLayout>
-      <div className="h-full">
+      <div className="flex-1">
         <LeaderboardView />
       </div>
     </MainLayout>

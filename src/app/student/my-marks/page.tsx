@@ -73,7 +73,7 @@ export default function MyMarksPage() {
 
   return (
     <MainLayout userType="student">
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col flex-1">
             <Card>
                 <CardHeader>
                     <CardTitle>My Marks</CardTitle>
