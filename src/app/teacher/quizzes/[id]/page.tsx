@@ -9,13 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { X, PlusCircle, Check } from "lucide-react";
+import { X, PlusCircle, Check, Trash2 } from "lucide-react";
 import type { Quiz, Question, Option } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { db } from '@/lib/firebase';
-import { ref, get, set, child } from 'firebase/database';
+import { ref, get, set } from 'firebase/database';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function EditQuizPage() {
@@ -86,10 +86,10 @@ export default function EditQuizPage() {
             id: newQuestionId,
             text: '',
             options: [
-                { id: `o1-${Date.now()}`, text: '' },
-                { id: `o2-${Date.now()}`, text: '' },
-                { id: `o3-${Date.now()}`, text: '' },
-                { id: `o4-${Date.now()}`, text: '' },
+                { id: `o1-${newQuestionId}`, text: '' },
+                { id: `o2-${newQuestionId}`, text: '' },
+                { id: `o3-${newQuestionId}`, text: '' },
+                { id: `o4-${newQuestionId}`, text: '' },
             ],
             correctAnswerId: '',
         };
@@ -107,15 +107,24 @@ export default function EditQuizPage() {
     const handleSaveChanges = async () => {
         if (!quiz) return;
         try {
-            const quizToSave = { ...quiz };
+            // Ensure no undefined values that firebase dislikes
+            const quizToSave = { 
+                ...quiz,
+                questions: quiz.questions.map(q => ({
+                    ...q,
+                    options: q.options || [],
+                    correctAnswerId: q.correctAnswerId || ''
+                }))
+             };
             delete (quizToSave as Partial<Quiz>).id; // Don't save the ID inside the object
             await set(ref(db, `quizzes/${quiz.id}`), quizToSave);
             toast({
                 title: 'Success!',
                 description: 'Your quiz has been saved.',
             });
-            router.push('/teacher/dashboard');
+            router.push('/teacher/quizzes');
         } catch(error) {
+             console.error("Save Error:", error);
              toast({
                 variant: 'destructive',
                 title: 'Error saving quiz',
@@ -195,7 +204,7 @@ export default function EditQuizPage() {
                                 <div className="flex justify-between items-center">
                                     <h4 className="font-semibold">Question {index + 1}</h4>
                                     <Button variant="ghost" size="icon" onClick={() => handleRemoveQuestion(question.id)}>
-                                        <X className="h-4 w-4"/>
+                                        <Trash2 className="h-4 w-4 text-destructive"/>
                                     </Button>
                                 </div>
                                 <div className="space-y-2">
