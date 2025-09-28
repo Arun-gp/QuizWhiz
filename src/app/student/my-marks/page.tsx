@@ -7,40 +7,51 @@ import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
-import type { User, Quiz } from '@/lib/types';
+import type { User, Quiz, ProgressData } from '@/lib/types';
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import MarksChart from "@/components/marks-chart";
 
 export default function MyMarksPage() {
   const [student, setStudent] = useState<User | null>(null);
   const [quizzes, setQuizzes] = useState<Record<string, Quiz>>({});
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [progressData, setProgressData] = useState<ProgressData[]>([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
         if(user) {
             const userRef = ref(db, 'users/' + user.uid);
             onValue(userRef, (snapshot) => {
-                if(snapshot.exists()){
-                    setStudent({id: user.uid, ...snapshot.val()});
-                }
+                const studentData = snapshot.exists() ? {id: user.uid, ...snapshot.val()} : null;
+                setStudent(studentData);
                 
                 const quizzesRef = ref(db, 'quizzes');
                 onValue(quizzesRef, (quizSnapshot) => {
-                    if (quizSnapshot.exists()) {
-                         const quizzesData = quizSnapshot.val();
-                         const quizzesMap: Record<string, Quiz> = {};
-                         Object.keys(quizzesData).forEach(key => {
-                             quizzesMap[key] = {
-                                id: key,
-                                ...quizzesData[key],
-                                questions: quizzesData[key].questions || []
-                            };
-                         });
-                        setQuizzes(quizzesMap);
+                    const quizzesData = quizSnapshot.exists() ? quizSnapshot.val() : {};
+                    const quizzesMap: Record<string, Quiz> = {};
+                    Object.keys(quizzesData).forEach(key => {
+                        quizzesMap[key] = {
+                            id: key,
+                            ...quizzesData[key],
+                            questions: quizzesData[key].questions || []
+                        };
+                    });
+                    setQuizzes(quizzesMap);
+
+                    if (studentData?.marks) {
+                        const dataForChart = Object.entries(studentData.marks).map(([quizId, score]) => {
+                            const quiz = quizzesMap[quizId];
+                            if (!quiz || !quiz.questions.length) {
+                                return { quiz: quiz?.title || 'Unknown Quiz', score: 0 };
+                            }
+                            const percentage = Math.round((score / quiz.questions.length) * 100);
+                            return { quiz: quiz.title, score: percentage };
+                        });
+                        setProgressData(dataForChart);
                     }
+
                     setLoading(false);
                 });
             })
@@ -55,25 +66,45 @@ export default function MyMarksPage() {
   if (loading) {
     return (
         <MainLayout userType="student">
-            <Card>
-                <CardHeader>
-                    <Skeleton className="h-8 w-32" />
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-2">
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                    </div>
-                </CardContent>
-            </Card>
+             <div className="flex flex-1 flex-col space-y-6">
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-8 w-48" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-48 w-full" />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-8 w-32" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </MainLayout>
     );
   }
 
   return (
     <MainLayout userType="student">
-        <div className="h-full flex flex-col flex-1">
+        <div className="h-full flex flex-col flex-1 space-y-6">
+            {progressData.length > 0 && (
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Performance Overview</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <MarksChart data={progressData} />
+                    </CardContent>
+                </Card>
+            )}
             <Card>
                 <CardHeader>
                     <CardTitle>My Marks</CardTitle>
