@@ -115,7 +115,7 @@ export default function NewQuizPage() {
 
     return (
         <MainLayout userType="teacher">
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-px bg-border -m-4 md:-m-6 lg:-m-8">
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-px bg-border -m-4 sm:-m-6 lg:-m-8">
                 {/* Left Column */}
                 <div className="bg-card text-card-foreground flex flex-col">
                     <div className="p-4 border-b">
