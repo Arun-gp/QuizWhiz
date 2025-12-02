@@ -11,11 +11,12 @@ import { useToast } from '@/hooks/use-toast';
 import { db, auth } from '@/lib/firebase';
 import { ref, push, set } from 'firebase/database';
 import { generateQuestions, GenerateQuestionsOutput } from '@/ai/flows/generate-questions-flow';
-import { Loader2, Sparkles, FileText, Upload, Link as LinkIcon, Settings, ChevronDown } from 'lucide-react';
+import { Loader2, Sparkles, FileText, Upload, Link as LinkIcon, Settings, ChevronDown, Trash2, PlusCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { cn } from '@/lib/utils';
 
 export default function NewQuizPage() {
@@ -38,9 +39,8 @@ export default function NewQuizPage() {
             return;
         }
         setIsGenerating(true);
+        setGeneratedQuiz([]);
         try {
-            // Using the existing flow, but ideally this would be a new flow
-            // that takes the full content as input. We'll simulate by using the first line as a topic.
             const topic = quizContent.split('\n')[0] || 'General Knowledge';
             const result: GenerateQuestionsOutput = await generateQuestions({ topic, count: numQuestions });
             
@@ -55,7 +55,7 @@ export default function NewQuizPage() {
                     id: questionId,
                     text: q.question,
                     options: options,
-                    correctAnswerId: correctOption ? correctOption.id : '',
+                    correctAnswerId: correctOption ? correctOption.id : (options[0]?.id || ''),
                 };
             });
             
@@ -87,7 +87,7 @@ export default function NewQuizPage() {
 
         const newQuizRef = push(ref(db, 'quizzes'));
         const quizToSave: Omit<Quiz, 'id'> = {
-            title: quizContent.split('\n')[0].substring(0, 30) || 'New Quiz', // Generate a title
+            title: quizContent.split('\n')[0].substring(0, 50) || 'New Quiz',
             description: `A quiz based on the provided content.`,
             duration: 10, // Default duration
             questions: generatedQuiz,
@@ -109,6 +109,62 @@ export default function NewQuizPage() {
             });
         }
     };
+
+    const handleQuestionTextChange = (questionId: string, text: string) => {
+        setGeneratedQuiz(prev => prev.map(q => q.id === questionId ? {...q, text} : q));
+    };
+
+    const handleOptionTextChange = (questionId: string, optionId: string, text: string) => {
+        setGeneratedQuiz(prev => prev.map(q => {
+            if (q.id === questionId) {
+                return {...q, options: q.options.map(o => o.id === optionId ? {...o, text} : o)};
+            }
+            return q;
+        }));
+    };
+
+    const handleCorrectAnswerChange = (questionId: string, optionId: string) => {
+        setGeneratedQuiz(prev => prev.map(q => q.id === questionId ? {...q, correctAnswerId: optionId} : q));
+    };
+    
+    const handleAddOption = (questionId: string) => {
+        setGeneratedQuiz(prev => prev.map(q => {
+            if (q.id === questionId) {
+                const newOption: Option = {
+                    id: `o${questionId}-${Date.now()}`,
+                    text: ''
+                };
+                return {...q, options: [...q.options, newOption]};
+            }
+            return q;
+        }));
+    };
+
+    const handleRemoveOption = (questionId: string, optionId: string) => {
+        setGeneratedQuiz(prev => prev.map(q => {
+            if (q.id === questionId) {
+                // Ensure there's always at least one option left
+                if (q.options.length <= 1) {
+                    toast({ variant: 'destructive', title: "Cannot remove", description: "A question must have at least one option."});
+                    return q;
+                };
+                const newOptions = q.options.filter(o => o.id !== optionId);
+                // If the deleted option was the correct one, set the first option as correct
+                const isCorrectAnswerDeleted = q.correctAnswerId === optionId;
+                return {
+                    ...q, 
+                    options: newOptions,
+                    correctAnswerId: isCorrectAnswerDeleted ? (newOptions[0]?.id || '') : q.correctAnswerId
+                };
+            }
+            return q;
+        }));
+    };
+
+    const handleRemoveQuestion = (questionId: string) => {
+        setGeneratedQuiz(prev => prev.filter(q => q.id !== questionId));
+    };
+
 
     const sentenceCount = (quizContent.match(/[.!?]+/g) || []).length;
     const wordCount = (quizContent.match(/\S+/g) || []).length;
@@ -208,21 +264,44 @@ export default function NewQuizPage() {
                              <div className="p-6 space-y-6">
                                 {generatedQuiz.map((question, index) => (
                                     <Card key={question.id}>
-                                        <CardHeader>
+                                        <CardHeader className="flex flex-row items-center justify-between">
                                             <CardTitle className="text-base">Question {index + 1}</CardTitle>
+                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveQuestion(question.id)}>
+                                                <Trash2 className="h-4 w-4 text-destructive"/>
+                                            </Button>
                                         </CardHeader>
                                         <CardContent className="space-y-4">
-                                            <p className="font-semibold">{question.text}</p>
+                                             <Input 
+                                                value={question.text}
+                                                onChange={(e) => handleQuestionTextChange(question.id, e.target.value)}
+                                                placeholder="Question text"
+                                                className="font-semibold"
+                                             />
                                             <RadioGroup 
                                                 value={question.correctAnswerId}
+                                                onValueChange={(optionId) => handleCorrectAnswerChange(question.id, optionId)}
                                                 className="space-y-2"
                                             >
-                                                {question.options.map((opt) => (
+                                                {question.options.map((opt, optIndex) => (
                                                     <div key={opt.id} className="flex items-center gap-2">
                                                         <RadioGroupItem value={opt.id} id={`${question.id}-${opt.id}`} />
-                                                        <Label htmlFor={`${question.id}-${opt.id}`} className={cn("flex-1 p-3 rounded-md border", opt.id === question.correctAnswerId ? 'bg-green-100 dark:bg-green-900/50 border-green-300 dark:border-green-700' : 'border-input')}>
-                                                            {opt.text}
+                                                        <Label htmlFor={`${question.id}-${opt.id}`} className="flex-1 sr-only">
+                                                            {opt.text || `Option ${optIndex + 1}`}
                                                         </Label>
+                                                        <Input
+                                                          value={opt.text}
+                                                          onChange={(e) => handleOptionTextChange(question.id, opt.id, e.target.value)}
+                                                          placeholder={`Option ${optIndex + 1}`}
+                                                          className={cn(opt.id === question.correctAnswerId ? "border-green-500 ring-2 ring-green-200 dark:ring-green-800" : "")}
+                                                        />
+                                                        <Button variant="ghost" size="icon" onClick={() => handleRemoveOption(question.id, opt.id)}>
+                                                            <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive"/>
+                                                        </Button>
+                                                        {optIndex === question.options.length - 1 && (
+                                                          <Button variant="ghost" size="icon" onClick={() => handleAddOption(question.id)}>
+                                                            <PlusCircle className="h-4 w-4 text-muted-foreground hover:text-primary"/>
+                                                          </Button>  
+                                                        )}
                                                     </div>
                                                 ))}
                                             </RadioGroup>
@@ -234,7 +313,7 @@ export default function NewQuizPage() {
                     )}
 
                     <div className="p-4 border-t">
-                        <Button className="w-full" onClick={handleSaveQuiz} disabled={generatedQuiz.length === 0}>
+                        <Button className="w-full" onClick={handleSaveQuiz} disabled={generatedQuiz.length === 0 || isGenerating}>
                             Create Quiz
                         </Button>
                     </div>
