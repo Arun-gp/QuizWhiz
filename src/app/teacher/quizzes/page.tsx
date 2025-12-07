@@ -3,7 +3,7 @@
 import MainLayout from "@/components/main-layout";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2, Edit } from "lucide-react";
 import Link from "next/link";
 import type { Quiz, User } from '@/lib/types';
 import {
@@ -136,7 +136,7 @@ export default function TeacherQuizzesPage() {
       <div className="space-y-8">
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <CardTitle>Your Quizzes</CardTitle>
                     <CardDescription>A list of all the quizzes you have created.</CardDescription>
@@ -150,38 +150,68 @@ export default function TeacherQuizzesPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Questions</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {myQuizzes.map((quiz) => (
-                  <TableRow key={quiz.id}>
-                    <TableCell className="font-medium">{quiz.title}</TableCell>
-                    <TableCell>{quiz.questions.length}</TableCell>
-                    <TableCell>{quiz.duration} min</TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button variant="outline" size="sm" asChild>
-                         <Link href={`/teacher/quizzes/${quiz.id}`}>Edit</Link>
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog(quiz)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+            {/* For larger screens */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Questions</TableHead>
+                    <TableHead>Duration</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-                 {myQuizzes.length === 0 && (
-                    <TableRow>
-                        <TableCell colSpan={4} className="text-center">No quizzes found.</TableCell>
+                </TableHeader>
+                <TableBody>
+                  {myQuizzes.map((quiz) => (
+                    <TableRow key={quiz.id}>
+                      <TableCell className="font-medium">{quiz.title}</TableCell>
+                      <TableCell>{quiz.questions.length}</TableCell>
+                      <TableCell>{quiz.duration} min</TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Button variant="outline" size="sm" asChild>
+                           <Link href={`/teacher/quizzes/${quiz.id}`}>Edit</Link>
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog(quiz)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
+                  ))}
+                   {myQuizzes.length === 0 && (
+                      <TableRow>
+                          <TableCell colSpan={4} className="text-center">No quizzes found.</TableCell>
+                      </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* For smaller screens */}
+            <div className="md:hidden space-y-4">
+                {myQuizzes.map((quiz) => (
+                    <Card key={quiz.id}>
+                        <CardHeader>
+                            <CardTitle className="text-lg">{quiz.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2 text-sm">
+                            <p><strong>Questions:</strong> {quiz.questions.length}</p>
+                            <p><strong>Duration:</strong> {quiz.duration} min</p>
+                        </CardContent>
+                        <DialogFooter className="p-4 pt-0 flex flex-row justify-end space-x-2">
+                            <Button variant="outline" size="sm" asChild>
+                               <Link href={`/teacher/quizzes/${quiz.id}`}><Edit className="mr-2 h-4 w-4" /> Edit</Link>
+                            </Button>
+                            <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(quiz)}>
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </Button>
+                        </DialogFooter>
+                    </Card>
+                ))}
+                {myQuizzes.length === 0 && (
+                    <p className="text-center text-muted-foreground pt-4">No quizzes found.</p>
                 )}
-              </TableBody>
-            </Table>
+            </div>
+
           </CardContent>
         </Card>
       </div>

@@ -219,7 +219,7 @@ export default function MainLayout({
   return (
     <SidebarProvider>
       <div className="flex min-h-screen">
-        <Sidebar variant="inset">
+        <Sidebar>
           <SidebarHeader>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-lg">

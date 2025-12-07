@@ -38,17 +38,22 @@ export default function Dashboard() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="md:col-span-2 lg:col-span-3">
+      <div className="grid gap-6">
+        <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Available Quizzes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {quizzes.map((quiz) => (
                 <QuizCard key={quiz.id} quiz={quiz} />
               ))}
             </div>
+             {quizzes.length === 0 && (
+                <div className="text-center text-muted-foreground py-8">
+                    No quizzes are available at the moment.
+                </div>
+             )}
           </CardContent>
         </Card>
       </div>

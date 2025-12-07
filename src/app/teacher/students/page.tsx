@@ -1,7 +1,7 @@
 
 'use client';
 import MainLayout from "@/components/main-layout";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import type { User } from '@/lib/types';
@@ -30,6 +30,7 @@ import { auth, db } from "@/lib/firebase";
 import { ref, set, get, remove, onValue } from "firebase/database";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function TeacherStudentsPage() {
     const [students, setStudents] = useState<User[]>([]);
@@ -191,7 +192,7 @@ export default function TeacherStudentsPage() {
       <div className="space-y-8">
         <Card id="students">
             <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <CardTitle>Your Students</CardTitle>
                         <CardDescription>A list of all your students.</CardDescription>
@@ -202,32 +203,61 @@ export default function TeacherStudentsPage() {
                 </div>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {students.map((student) => (
-                            <TableRow key={student.id}>
-                                <TableCell>{student.name}</TableCell>
-                                <TableCell>{student.email}</TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(student)}><Edit className="h-4 w-4" /></Button>
-                                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleOpenDeleteDialog(student)}><Trash2 className="h-4 w-4" /></Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                         {students.length === 0 && (
+                {/* For larger screens */}
+                <div className="hidden md:block">
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={3} className="text-center">No students found.</TableCell>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {students.map((student) => (
+                                <TableRow key={student.id}>
+                                    <TableCell>{student.name}</TableCell>
+                                    <TableCell>{student.email}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(student)}><Edit className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleOpenDeleteDialog(student)}><Trash2 className="h-4 w-4" /></Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                             {students.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={3} className="text-center">No students found.</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                {/* For smaller screens */}
+                <div className="md:hidden space-y-4">
+                    {students.map((student) => (
+                        <Card key={student.id} className="flex flex-col">
+                            <CardHeader className="flex flex-row items-center gap-4 p-4">
+                                <Avatar>
+                                    <AvatarImage data-ai-hint="profile picture" src={student.avatar || `https://i.pravatar.cc/40?u=${student.id}`} />
+                                    <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="font-semibold">{student.name}</p>
+                                    <p className="text-sm text-muted-foreground">{student.email}</p>
+                                </div>
+                            </CardHeader>
+                            <CardFooter className="p-4 pt-0 flex justify-end space-x-2">
+                                <Button variant="ghost" size="sm" onClick={() => handleOpenEditDialog(student)}><Edit className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleOpenDeleteDialog(student)}><Trash2 className="h-4 w-4" /></Button>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                    {students.length === 0 && (
+                        <p className="text-center text-muted-foreground pt-4">No students found.</p>
+                    )}
+                </div>
+
             </CardContent>
         </Card>
       </div>

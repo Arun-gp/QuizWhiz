@@ -1,7 +1,7 @@
 
 'use client';
 import MainLayout from "@/components/main-layout";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import type { User } from '@/lib/types';
@@ -36,6 +36,7 @@ import { auth, db } from "@/lib/firebase";
 import { ref, set, get, remove, onValue } from "firebase/database";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type UserRole = 'student' | 'teacher';
 
@@ -111,8 +112,6 @@ export default function AdminAccountsPage() {
         }
 
         try {
-            // This is a temporary way to create a user without signing them out.
-            // In a real app, you'd use Admin SDK on a backend.
             const userCredential = await createUserWithEmailAndPassword(auth, newUser.email, newUser.password);
             const userToAdd: Omit<User, 'id'> = {
                 name: newUser.name,
@@ -160,7 +159,6 @@ export default function AdminAccountsPage() {
              await remove(ref(db, 'users/' + currentUser.id));
              setIsDialogOpen(false);
              toast({ title: 'Success', description: 'User deleted successfully.' });
-             // Note: This doesn't delete the user from Firebase Auth, which requires Admin SDK.
         } catch (e) {
             toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete user data.' });
         }
@@ -206,7 +204,7 @@ export default function AdminAccountsPage() {
                         </div>
                     )}
                 </div>
-                <DialogFooter>
+                <DialogFooter className="flex-row justify-end space-x-2">
                     <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
                     <Button onClick={handleDialogSubmit}>{dialogMode === 'add' ? 'Add' : 'Save Changes'}</Button>
                 </DialogFooter>
@@ -240,7 +238,7 @@ export default function AdminAccountsPage() {
             <TabsContent value="teachers">
                 <Card>
                     <CardHeader>
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
                                 <CardTitle>Teachers</CardTitle>
                                 <CardDescription>Manage teacher accounts.</CardDescription>
@@ -251,39 +249,66 @@ export default function AdminAccountsPage() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                             <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {teachers.map((teacher) => (
-                                    <TableRow key={teacher.id}>
-                                        <TableCell>{teacher.name}</TableCell>
-                                        <TableCell>{teacher.email}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('edit', 'teacher', teacher)}><Edit className="h-4 w-4" /></Button>
-                                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleOpenDialog('delete', 'teacher', teacher)}><Trash2 className="h-4 w-4" /></Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {teachers.length === 0 && (
+                        {/* For larger screens */}
+                        <div className="hidden md:block">
+                            <Table>
+                                 <TableHeader>
                                     <TableRow>
-                                        <TableCell colSpan={3} className="text-center">No teachers found.</TableCell>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Email</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {teachers.map((teacher) => (
+                                        <TableRow key={teacher.id}>
+                                            <TableCell>{teacher.name}</TableCell>
+                                            <TableCell>{teacher.email}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('edit', 'teacher', teacher)}><Edit className="h-4 w-4" /></Button>
+                                                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleOpenDialog('delete', 'teacher', teacher)}><Trash2 className="h-4 w-4" /></Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {teachers.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={3} className="text-center">No teachers found.</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        {/* For smaller screens */}
+                        <div className="md:hidden space-y-4">
+                            {teachers.map((user) => (
+                                <Card key={user.id}>
+                                    <CardHeader className="flex flex-row items-center gap-4 p-4">
+                                        <Avatar>
+                                            <AvatarImage data-ai-hint="profile picture" src={user.avatar || `https://i.pravatar.cc/40?u=${user.id}`} />
+                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-semibold">{user.name}</p>
+                                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                                        </div>
+                                    </CardHeader>
+                                    <CardFooter className="p-2 pt-0 flex justify-end space-x-2">
+                                        <Button variant="ghost" size="sm" onClick={() => handleOpenDialog('edit', 'teacher', user)}><Edit className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleOpenDialog('delete', 'teacher', user)}><Trash2 className="h-4 w-4" /></Button>
+                                    </CardFooter>
+                                </Card>
+                            ))}
+                            {teachers.length === 0 && (
+                                <p className="text-center text-muted-foreground pt-4">No teachers found.</p>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
             </TabsContent>
             <TabsContent value="students">
                  <Card>
                     <CardHeader>
-                         <div className="flex justify-between items-center">
+                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
                                 <CardTitle>Students</CardTitle>
                                 <CardDescription>Manage student accounts and view marks.</CardDescription>
@@ -294,34 +319,64 @@ export default function AdminAccountsPage() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Total Marks</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {students.map((student) => (
-                                    <TableRow key={student.id}>
-                                        <TableCell>{student.name}</TableCell>
-                                        <TableCell>{student.email}</TableCell>
-                                        <TableCell>{student.totalScore || 0}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('edit', 'student', student)}><Edit className="h-4 w-4" /></Button>
-                                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleOpenDialog('delete', 'student', student)}><Trash2 className="h-4 w-4" /></Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {students.length === 0 && (
+                        {/* For larger screens */}
+                        <div className="hidden md:block">
+                            <Table>
+                                <TableHeader>
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center">No students found.</TableCell>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Email</TableHead>
+                                        <TableHead>Total Marks</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {students.map((student) => (
+                                        <TableRow key={student.id}>
+                                            <TableCell>{student.name}</TableCell>
+                                            <TableCell>{student.email}</TableCell>
+                                            <TableCell>{student.totalScore || 0}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button variant="ghost" size="icon" onClick={() => handleOpenDialog('edit', 'student', student)}><Edit className="h-4 w-4" /></Button>
+                                                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleOpenDialog('delete', 'student', student)}><Trash2 className="h-4 w-4" /></Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {students.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={4} className="text-center">No students found.</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                         {/* For smaller screens */}
+                        <div className="md:hidden space-y-4">
+                            {students.map((user) => (
+                                <Card key={user.id}>
+                                    <CardHeader className="flex flex-row items-center gap-4 p-4">
+                                        <Avatar>
+                                            <AvatarImage data-ai-hint="profile picture" src={user.avatar || `https://i.pravatar.cc/40?u=${user.id}`} />
+                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-semibold">{user.name}</p>
+                                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="px-4 pb-2 text-sm">
+                                        <strong>Total Marks:</strong> {user.totalScore || 0}
+                                    </CardContent>
+                                    <CardFooter className="p-2 pt-0 flex justify-end space-x-2">
+                                        <Button variant="ghost" size="sm" onClick={() => handleOpenDialog('edit', 'student', user)}><Edit className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleOpenDialog('delete', 'student', user)}><Trash2 className="h-4 w-4" /></Button>
+                                    </CardFooter>
+                                </Card>
+                            ))}
+                            {students.length === 0 && (
+                                <p className="text-center text-muted-foreground pt-4">No students found.</p>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
             </TabsContent>
