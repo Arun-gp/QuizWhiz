@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -20,7 +21,7 @@ import { auth, db } from "@/lib/firebase";
 import { ref, get } from "firebase/database";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import type { User } from "@/lib/types";
-
+import imageData from '@/app/lib/placeholder-images.json';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -89,60 +90,72 @@ export default function LoginPage() {
 
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={handleKeyPress}
-              disabled={loading}
-            />
-          </div>
-          <div className="space-y-2 relative">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={handleKeyPress}
-              className="pr-10"
-              disabled={loading}
-            />
-            <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute top-1/2 right-1 h-8 w-8 transform text-muted-foreground"
-                onClick={() => setShowPassword(!showPassword)}
-                disabled={loading}
-            >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
-            </Button>
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full" onClick={handleLogin} disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {loading ? "Logging in..." : "Login"}
-          </Button>
-        </CardFooter>
-      </Card>
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+       <div className="hidden bg-muted lg:flex items-center justify-center">
+        <Image
+            src={imageData['login-illustration'].src}
+            alt={imageData['login-illustration'].alt}
+            width={imageData['login-illustration'].width}
+            height={imageData['login-illustration'].height}
+            className="h-full w-full object-cover dark:brightness-[0.7]"
+            data-ai-hint={imageData['login-illustration'].hint}
+        />
+      </div>
+       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+          <Card className="w-full max-w-sm border-none shadow-none lg:border lg:shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-3xl">Login</CardTitle>
+              <CardDescription>
+                Enter your credentials to access your account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  disabled={loading}
+                />
+              </div>
+              <div className="space-y-2 relative">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  className="pr-10"
+                  disabled={loading}
+                />
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-1/2 right-1 h-8 w-8 transform text-muted-foreground"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading}
+                >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
+                </Button>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4">
+              <Button className="w-full" onClick={handleLogin} disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {loading ? "Logging in..." : "Login"}
+              </Button>
+            </CardFooter>
+          </Card>
+      </div>
     </div>
   );
 }
