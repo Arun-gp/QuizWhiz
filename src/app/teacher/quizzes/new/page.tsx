@@ -177,7 +177,7 @@ export default function NewQuizPage() {
                     <div className="p-4 border-b">
                         <h2 className="font-semibold">Content for your quiz</h2>
                     </div>
-                    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                    <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-center">
                         <FileText className="w-16 h-16 text-primary mb-4" strokeWidth={1} />
                         <p className="text-muted-foreground mb-4">To create a quiz type or paste your text here</p>
                         <Textarea 
@@ -187,14 +187,14 @@ export default function NewQuizPage() {
                             onChange={(e) => setQuizContent(e.target.value)}
                         />
                         <p className="text-sm text-muted-foreground my-4">OR</p>
-                        <div className="flex gap-4">
+                        <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
                             <Button variant="outline"><FileText className="mr-2 h-4 w-4" /> Sample content</Button>
                             <Button variant="outline"><Upload className="mr-2 h-4 w-4" /> Upload file</Button>
                             <Button variant="outline"><LinkIcon className="mr-2 h-4 w-4" /> Web url</Button>
                         </div>
                     </div>
                     <div className="p-4 border-t bg-muted/50">
-                        <div className="grid grid-cols-3 gap-2 mb-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
                              <Select value={questionType} onValueChange={setQuestionType}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Question type" />
@@ -261,7 +261,7 @@ export default function NewQuizPage() {
                         </div>
                     ) : (
                         <ScrollArea className="flex-1">
-                             <div className="p-6 space-y-6">
+                             <div className="p-4 sm:p-6 space-y-6">
                                 {generatedQuiz.map((question, index) => (
                                     <Card key={question.id}>
                                         <CardHeader className="flex flex-row items-center justify-between">
