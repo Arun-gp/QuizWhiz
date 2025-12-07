@@ -37,9 +37,11 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid gap-4 justify-center">
+          <div className="grid gap-4">
              {userCount === null ? (
-               <Skeleton className="h-10 w-40" />
+                <div className="flex justify-center">
+                    <Skeleton className="h-10 w-40" />
+                </div>
              ) : userCount === 0 ? (
                 <div className="text-center p-4 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-400 dark:border-yellow-700 rounded-md">
                     <p className="font-semibold text-yellow-800 dark:text-yellow-200">No users found in the system.</p>
@@ -51,9 +53,11 @@ export default function Home() {
                     </Button>
                 </div>
              ) : (
-                <Button asChild>
-                  <Link href="/login">Get Started</Link>
-                </Button>
+                <div className="flex justify-center">
+                    <Button asChild>
+                      <Link href="/login">Get Started</Link>
+                    </Button>
+                </div>
              )}
           </div>
         </div>
