@@ -38,4 +38,5 @@ const nextConfig: NextConfig = {
   }
 };
 
+// Forcing a server restart to clear the cache.
 export default nextConfig;
