@@ -1,9 +1,9 @@
 {
   "login-illustration": {
-    "src": "https://picsum.photos/seed/login/1200/800",
+    "src": "https://res.cloudinary.com/dry3pzan6/image/upload/v1765125744/jjfsk8ougbr2whdgtqxw.svg",
     "width": 1200,
     "height": 800,
-    "alt": "A person sitting on a large phone with a login screen, holding a key.",
+    "alt": "An abstract illustration of a person logging into a secure system.",
     "hint": "security login"
   }
 }
