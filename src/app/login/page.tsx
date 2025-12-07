@@ -91,14 +91,15 @@ export default function LoginPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-       <div className="hidden bg-muted lg:flex items-center justify-center">
+       <div className="hidden bg-muted lg:flex items-center justify-center p-8">
         <Image
             src={imageData['login-illustration'].src}
             alt={imageData['login-illustration'].alt}
             width={imageData['login-illustration'].width}
             height={imageData['login-illustration'].height}
-            className="h-full w-full object-cover dark:brightness-[0.7]"
+            className="h-auto w-full max-w-lg object-contain dark:brightness-[0.8]"
             data-ai-hint={imageData['login-illustration'].hint}
+            priority
         />
       </div>
        <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
