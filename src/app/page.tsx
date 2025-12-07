@@ -58,15 +58,51 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <div className="hidden bg-muted lg:block">
-        <Image
-          src="https://picsum.photos/1920/1080"
-          alt="Image"
-          width="1920"
-          height="1080"
-          data-ai-hint="library books"
-          className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-        />
+      <div className="hidden bg-muted lg:flex items-center justify-center p-8">
+        <svg
+            className="w-full h-full"
+            viewBox="0 0 800 600"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              width="800"
+              height="600"
+              rx="20"
+              className="fill-card"
+            />
+            <g transform="translate(50, 50)">
+              {/* Screen */}
+              <rect x="50" y="50" width="600" height="400" rx="15" className="stroke-primary" strokeWidth="4" fill="hsl(var(--background))" />
+              <rect x="50" y="50" width="600" height="50" rx="15" className="fill-primary/10" />
+              <circle cx="75" cy="75" r="8" className="fill-destructive/50" />
+              <circle cx="105" cy="75" r="8" className="fill-yellow-400/50" />
+              <circle cx="135" cy="75" r="8" className="fill-green-400/50" />
+
+              {/* Quiz Content */}
+              <rect x="100" y="120" width="500" height="30" rx="8" className="fill-primary/20" />
+
+              <rect x="100" y="180" width="400" height="20" rx="5" className="fill-muted-foreground/20" />
+              <rect x="100" y="210" width="350" height="20" rx="5" className="fill-muted-foreground/20" />
+              
+              <rect x="100" y="260" width="50" height="50" rx="8" className="fill-primary/80" />
+              <rect x="160" y="275" width="300" height="20" rx="5" className="fill-muted-foreground/20" />
+              
+              <rect x="100" y="320" width="50" height="50" rx="8" className="fill-muted" />
+              <rect x="160" y="335" width="250" height="20" rx="5" className="fill-muted-foreground/20" />
+              
+              <rect x="100" y="380" width="50" height="50" rx="8" className="fill-muted" />
+              <rect x="160" y="395" width="280" height="20" rx="5" className="fill-muted-foreground/20" />
+              
+              <path d="M580 180 C 620 220, 620 280, 580 320" stroke="hsl(var(--primary))" strokeWidth="3" fill="none" strokeDasharray="5 5" className="opacity-50" />
+              <path d="M585 315 L 580 320 L 575 315" stroke="hsl(var(--primary))" strokeWidth="3" fill="none" />
+              
+              <circle cx="350" y="25" r="20" className="fill-primary">
+                 <animateTransform attributeName="transform" type="translate" values="0 0; 0 -10; 0 0" dur="2s" repeatCount="indefinite"/>
+              </circle>
+              <text x="350" y="30" textAnchor="middle" className="fill-primary-foreground font-bold text-2xl">?</text>
+            </g>
+          </svg>
       </div>
     </div>
   );
